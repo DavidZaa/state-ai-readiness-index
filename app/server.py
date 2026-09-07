@@ -7,10 +7,14 @@ assembled afterwards by script.
 
 from __future__ import annotations
 
+import csv
+import io
+import json
 import statistics
+from datetime import date
 from pathlib import Path
 
-from flask import Flask, render_template, request
+from flask import Flask, Response, render_template, request
 
 from app.data.loader import (
     DEFAULT_WEIGHTS,
@@ -107,6 +111,82 @@ def create_app(root: Path = ROOT) -> Flask:
             swings=swings,
         )
 
+    # Every serious data tool lets you take the data away and check it. These
+    # export exactly what the reader is looking at — the weights and the
+    # normalisation travel in the payload, so a downloaded ranking can be
+    # reproduced rather than merely quoted.
+    def _export(args):
+        weights, method, rows = context(args)
+
+        return weights, method, rows, rank_instability(indicators, weights, method=method)
+
+    @app.route("/data/index.csv")
+    def download_csv():
+        weights, method, rows, swings = _export(request.args)
+        buffer = io.StringIO()
+        writer = csv.writer(buffer)
+        keys = [indicator.key for indicator in indicators]
+
+        writer.writerow(["# State AI Readiness Index"])
+        writer.writerow([f"# generated {date.today().isoformat()}  normalisation={method}"])
+        writer.writerow(["# weights: " + ", ".join(f"{k}={weights[k]}" for k in keys)])
+        writer.writerow(["# scores are computed, not measured — see /methodology"])
+        writer.writerow(
+            ["rank", "state_code", "state", "score", "rank_best", "rank_worst", "swing", "coverage"]
+            + [f"raw_{key}" for key in keys]
+        )
+
+        for row in rows:
+            swing = swings.get(row["state"], {})
+            writer.writerow(
+                [
+                    row["rank"], row["state"], STATE_NAMES.get(row["state"], row["state"]),
+                    row["score"], swing.get("best", ""), swing.get("worst", ""),
+                    swing.get("swing", ""), row["coverage"],
+                ]
+                + [row["raw"].get(key, "") for key in keys]
+            )
+
+        return Response(
+            buffer.getvalue(),
+            mimetype="text/csv",
+            headers={"Content-Disposition": "attachment; filename=state-ai-readiness-index.csv"},
+        )
+
+    @app.route("/data/index.json")
+    def download_json():
+        weights, method, rows, swings = _export(request.args)
+
+        payload = {
+            "name": "State AI Readiness Index",
+            "generated": date.today().isoformat(),
+            "normalisation": method,
+            "weights": weights,
+            "caveat": (
+                "Scores are computed from confounded proxy indicators and do not show "
+                "that technology causes educational outcomes."
+            ),
+            "indicators": [
+                {
+                    "key": i.key, "label": i.label, "source": i.source,
+                    "source_url": i.source_url, "year": i.year,
+                    "states_covered": len(i.values),
+                }
+                for i in indicators
+            ],
+            "rows": [
+                {**row, "name": STATE_NAMES.get(row["state"]),
+                 "instability": swings.get(row["state"])}
+                for row in rows
+            ],
+        }
+
+        return Response(
+            json.dumps(payload, indent=2),
+            mimetype="application/json",
+            headers={"Content-Disposition": "attachment; filename=state-ai-readiness-index.json"},
+        )
+
     @app.route("/methodology")
     def methodology():
         return render_template(
@@ -150,6 +230,12 @@ def create_app(root: Path = ROOT) -> Flask:
         return f"{number}{suffix}"
 
     app.jinja_env.globals["by_key"] = by_key
+    app.jinja_env.globals["data_vintage"] = {
+        "naep": "2024",
+        "policy": policy_payload.get("source_last_updated", "2026"),
+        "built": date.today().isoformat(),
+    }
+    app.jinja_env.globals["repo_url"] = "https://github.com/DavidZaa/state-ai-readiness-index"
 
     return app
 

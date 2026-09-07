@@ -49,6 +49,24 @@
     {% for note in policy.coding_notes %}<li>{{ note }}</li>{% endfor %}
   </ul>
 
+  <h2>Citing this</h2>
+  <p>
+    The index is reproducible from its inputs: NAEP figures come from a public API and
+    the policy dataset is committed to the repository, so a citation can point at the
+    exact recipe rather than at a screenshot.
+  </p>
+  <blockquote class="citation">
+    State AI Readiness Index. Built {{ data_vintage.built }} from NAEP
+    {{ data_vintage.naep }} and state AI guidance current to {{ data_vintage.policy }}.
+    Weights and normalisation are user-selected; the ranking cited should be
+    accompanied by the URL that produced it.
+    <a href="{{ repo_url }}" rel="noreferrer">{{ repo_url }}</a>
+  </blockquote>
+  <p class="small">
+    <a href="{{ url_for('download_csv') }}">Download the data as CSV</a> ·
+    <a href="{{ url_for('download_json') }}">as JSON with full source metadata</a>
+  </p>
+
   <h2>What this does not show</h2>
   <p>
     It does not show that technology or AI policy causes educational outcomes. These

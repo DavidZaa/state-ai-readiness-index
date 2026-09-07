@@ -383,3 +383,59 @@ a { color: var(--accent); }
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ------------------------------------------------- credibility furniture */
+
+/* The things every comparable tool carries and a student project omits:
+   where the data came from, when, how to take it away, how to cite it. */
+
+.footer__caveat { max-width: var(--measure); margin: 0 0 1.5rem; }
+
+.footer__meta {
+  display: grid;
+  gap: 1rem 2.5rem;
+  margin: 0;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--rule);
+}
+
+@media (min-width: 40rem) {
+  .footer__meta { grid-template-columns: repeat(4, auto); justify-content: start; }
+}
+
+.footer__meta dt {
+  margin-bottom: 0.15rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+.footer__meta dd { margin: 0; font-size: 0.85rem; color: var(--ink-muted); }
+
+.takeaway {
+  display: grid;
+  gap: 1.25rem;
+  margin: 2.5rem 0 0;
+  padding: 1.5rem;
+  background: var(--paper-raised);
+  border: 1px solid var(--rule);
+}
+
+@media (min-width: 52rem) {
+  .takeaway { grid-template-columns: 1fr auto; align-items: center; }
+}
+
+.takeaway h2 { margin: 0 0 0.35rem; font-size: 1.15rem; }
+.takeaway p { margin: 0; max-width: 52ch; }
+
+.citation {
+  margin: 1rem 0;
+  padding: 1rem 1.25rem;
+  background: var(--paper-sunk);
+  border-left: 3px solid var(--accent);
+  font-size: 0.88rem;
+  line-height: 1.65;
+  color: var(--ink-muted);
+}

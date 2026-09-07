@@ -22,11 +22,33 @@
     <main>{% block content %}{% endblock %}</main>
 
     <footer class="footer">
-      <p>
-        Built on public federal data. Scores are computed from indicators that are
-        separately measured and often confounded — this does not show that technology
-        causes educational outcomes. <a href="{{ url_for('methodology') }}">How the index works</a>.
+      <p class="footer__caveat">
+        Scores are computed from indicators that are separately measured and often
+        confounded. This does not show that technology causes educational outcomes.
+        <a href="{{ url_for('methodology') }}">How the index works</a>.
       </p>
+
+      <dl class="footer__meta">
+        <div>
+          <dt>Data</dt>
+          <dd>NAEP {{ data_vintage.naep }} · state AI guidance to {{ data_vintage.policy }}</dd>
+        </div>
+        <div>
+          <dt>Built</dt>
+          <dd>{{ data_vintage.built }}</dd>
+        </div>
+        <div>
+          <dt>Download</dt>
+          <dd>
+            <a href="{{ url_for('download_csv') }}?{{ request.query_string.decode() }}">CSV</a> ·
+            <a href="{{ url_for('download_json') }}?{{ request.query_string.decode() }}">JSON</a>
+          </dd>
+        </div>
+        <div>
+          <dt>Code</dt>
+          <dd><a href="{{ repo_url }}" rel="noreferrer">GitHub</a></dd>
+        </div>
+      </dl>
     </footer>
   </div>
 
