@@ -1,6 +1,6 @@
 {# The control that makes the argument: hand the reader the weights. #}
 <form class="panel" method="get" data-weights>
-  <p class="kicker">Build your own index</p>
+  <p class="kicker">How much should each measure count?</p>
   <div class="controls">
     {% for indicator in indicators %}
       <div class="control">
@@ -15,15 +15,15 @@
   </div>
 
   <div class="row">
-    <label for="method" class="small">Normalisation</label>
+    <label for="method" class="small">Putting scores on one scale</label>
     <select name="method" id="method">
-      <option value="minmax" {% if method == 'minmax' %}selected{% endif %}>Min-max (best = 100)</option>
-      <option value="zscore" {% if method == 'zscore' %}selected{% endif %}>Z-score (keeps the spread)</option>
+      <option value="minmax" {% if method == 'minmax' %}selected{% endif %}>Best state = 100</option>
+      <option value="zscore" {% if method == 'zscore' %}selected{% endif %}>Keep the real spacing</option>
     </select>
     {% if a_code %}<input type="hidden" name="a" value="{{ a_code }}">{% endif %}
     {% if b_code %}<input type="hidden" name="b" value="{{ b_code }}">{% endif %}
     <button class="button--primary" type="submit">Re-rank</button>
     <a class="button" href="{{ request.path }}">Reset</a>
   </div>
-  <p class="small">The URL carries your weights, so a ranking you build is a link you can send.</p>
+  <p class="small">Your settings go into the web address, so you can send someone the exact ranking you built.</p>
 </form>

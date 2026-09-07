@@ -6,7 +6,7 @@
   <section class="frontispiece" style="grid-template-columns:1fr">
     <div>
       <h1>No state with the code “{{ code }}”</h1>
-      <p class="lede">The index covers the 50 states. Pick one below.</p>
+      <p class="lede">This covers the 50 states. Pick one below.</p>
       <form class="row" style="margin-top:1.5rem" data-state-lookup>
         <select name="code">
           {% for c in states %}<option value="{{ c }}">{{ names[c] }}</option>{% endfor %}
@@ -21,10 +21,9 @@
       <p class="kicker">State profile</p>
       <h1>{{ names[code] }}</h1>
       <p class="lede">
-        Ranked <strong>{{ row.rank|ordinal }}</strong> of {{ total }} on the weights
-        currently set{% if swing %}, but it lands anywhere from
-        {{ swing.best|ordinal }} to {{ swing.worst|ordinal }} across the alternative
-        indexes tested{% endif %}.
+        Ranked <strong>{{ row.rank|ordinal }}</strong> of {{ total }} using the current
+        settings. Change how much each measure counts and that number moves — the
+        analysis below shows by how much.
       </p>
       <p class="row" style="margin-top:1.5rem">
         <a class="button" href="{{ url_for('explore') }}">Change the weights</a>
@@ -38,26 +37,25 @@
       <p class="finding__unit">rank {{ row.rank }} of {{ total }}</p>
       {% if swing %}
         <p>
-          Under other defensible recipes this state ranges from
-          {{ swing.best|ordinal }} to {{ swing.worst|ordinal }} — a swing of
-          {{ swing.swing }} places.
+          Built with other settings, this state ranges from {{ swing.best|ordinal }} to
+          {{ swing.worst|ordinal }}.
         </p>
       {% endif %}
       {% if row.coverage < 1 %}
         <p class="small missing" style="margin:0">
-          Scored on {{ row.coverage|pct }} of the indicators; the rest are missing for
-          this state and nothing has been filled in.
+          We only have {{ row.coverage|pct }} of the measures for this state. It is scored
+          on those. Nothing was filled in.
         </p>
       {% endif %}
     </div>
   </section>
 
   <section class="analysis" data-analysis data-code="{{ code }}" style="margin-top:2.5rem">
-    <h2 style="font-size:1.5rem;margin:0 0 0.35rem">How stable is that position?</h2>
+    <h2 style="font-size:1.5rem;margin:0 0 0.35rem">Does that rank actually mean anything?</h2>
     <p class="small" style="max-width:64ch;margin:0 0 1.25rem">
-      Rather than trust one set of weights, this ranks all 50 states thousands of times
-      under weightings drawn at random, and records where {{ names[code] }} lands each
-      time. Nothing is pre-computed — the work runs now.
+      One ranking is one opinion. So we build a thousand of them, changing how much each
+      measure counts each time, and record where {{ names[code] }} lands. This is
+      running now, not loaded from a file.
     </p>
 
     <div class="progress" data-progress>
@@ -69,15 +67,15 @@
       <div class="analysis__summary">
         <div>
           <p class="finding__number" data-median>—</p>
-          <p class="finding__unit">median rank across <span data-trials>—</span> rankings</p>
+          <p class="finding__unit">its usual rank across <span data-trials>—</span> rankings</p>
         </div>
         <p class="analysis__reading" data-reading></p>
       </div>
 
-      <h3 style="font-size:1.05rem;margin:1.75rem 0 0.35rem">Every position it reached</h3>
+      <h3 style="font-size:1.05rem;margin:1.75rem 0 0.35rem">Every rank it landed on</h3>
       <p class="small" style="margin:0 0 0.75rem">
-        Each bar is one rank; height is how often {{ names[code] }} landed there. The shaded
-        band is the middle 80% of outcomes.
+        Each bar is a rank. Taller means {{ names[code] }} landed there more often. The
+        shaded bars cover its four most common outcomes in five.
       </p>
       <div class="histogram" data-histogram role="img" aria-label="Distribution of ranks"></div>
       <p class="histogram__scale"><span>Rank 1</span><span>Rank 50</span></p>
@@ -85,11 +83,11 @@
   </section>
 
   <section style="margin-top:2.5rem">
-    <h2 style="font-size:1.5rem;margin:0 0 1rem">What produced that score</h2>
+    <h2 style="font-size:1.5rem;margin:0 0 1rem">The numbers behind the score</h2>
     <div class="table-wrap">
       <table>
         <thead>
-          <tr><th>Indicator</th><th class="num">Raw value</th><th class="num">Normalised</th><th class="num">Weight</th><th>Source</th></tr>
+          <tr><th>Measure</th><th class="num">Raw value</th><th class="num">On a 0-100 scale</th><th class="num">Weight</th><th>Source</th></tr>
         </thead>
         <tbody>
           {% for indicator in indicators %}
@@ -111,8 +109,8 @@
       </table>
     </div>
     <p class="small">
-      Raw values sit on each indicator's own scale. NAEP scale scores are not
-      percentages. <a href="{{ url_for('methodology') }}">How normalisation works</a>.
+      Each measure uses its own scale — a reading score of 220 is normal, not 22%.
+      <a href="{{ url_for('methodology') }}">How they get put on one scale</a>.
     </p>
   </section>
 

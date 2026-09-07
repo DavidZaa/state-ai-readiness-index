@@ -3,47 +3,67 @@
 {% block content %}
 
 <section class="hero" style="padding-bottom:1rem">
-  <h1>How the index works, and where it fails</h1>
+  <h1>How this works, and where it breaks</h1>
   <p class="lede">
-    Two decisions turn these indicators into a ranking. Both are arguable, and this
-    page names them rather than putting them in an appendix.
+    Turning five separate numbers into one ranking takes two decisions. Neither has a
+    right answer. This page says what they are instead of hiding them in an appendix.
   </p>
 </section>
 
 <div class="prose">
-  <h2>1. Normalisation</h2>
+  <h2>Decision 1: putting different numbers on the same scale</h2>
   <p>
-    The inputs are not comparable. A grade-8 maths scale score near 283 and a policy
-    status of "issued" are different kinds of number, so putting them in one average
-    means deciding what counts as 0 and what counts as 100.
+    The measures do not share a scale. A grade-8 maths score of 283 and a guidance
+    status of &ldquo;published&rdquo; are not the same kind of number, so before they can
+    be averaged, something has to decide what counts as 0 and what counts as 100.
   </p>
   <p>
-    <strong>Min-max</strong> makes the best state 100 and the worst 0. It reads clearly and
-    it is what most published indices use — but if every state falls between 78 and
-    82, it stretches four real points across the whole scale and makes near-ties look
-    decisive. <strong>Z-scores</strong> keep the true spread, so an average state lands in the
-    middle instead of at an extreme, at the cost of a scale with no natural ends.
-    Neither is correct. You can switch between them and watch what changes.
+    <strong>Best state = 100.</strong> The top state gets 100, the bottom gets 0, everyone
+    else sits in between. Easy to read, and what most published rankings use. The catch:
+    if every state scores between 78 and 82, this stretches that small gap across the
+    whole scale and makes near-ties look like blowouts.
+  </p>
+  <p>
+    <strong>Keep the real spacing.</strong> States are placed by how far they sit from the
+    average, so a genuinely middling state lands in the middle instead of being pushed to
+    an extreme. The catch: the scale has no natural top or bottom.
+  </p>
+  <p>You can switch between the two and watch the table move.</p>
+
+  <h2>Decision 2: how much each measure counts</h2>
+  <p>The defaults are:</p>
+  <ul>
+    {% for key, value in defaults.items() %}
+      <li><strong>{{ (value * 100)|round|int }}%</strong> — {{ by_key[key].label }}</li>
+    {% endfor %}
+  </ul>
+  <p>
+    There is no principled reason for those numbers. We picked them. Every published
+    ranking picks them too — most just don&apos;t say so.
   </p>
 
-  <h2>2. Weighting</h2>
+  <h2>How we test whether a rank means anything</h2>
   <p>
-    How much each indicator counts. The defaults here are
-    {% for key, value in defaults.items() %}{{ (value * 100)|round|int }}% {{ by_key[key].label|lower }}{% if not loop.last %}, {% endif %}{% endfor %}.
-    There is no principled reason for those numbers. That is the honest position:
-    every published index picks weights, and the ranking follows from the pick.
+    Instead of trusting one set of weights, we build a thousand rankings with the weights
+    chosen at random, and record where each state lands every time. A state that stays
+    put across all of them has a rank worth reporting. A state that bounces around does
+    not.
+  </p>
+  <p>
+    The weights are drawn completely at random on purpose. Picking a set of
+    &ldquo;sensible&rdquo; alternatives would mean making the same kind of judgement this
+    whole page is questioning.
   </p>
 
-  <h2>What we do with missing data</h2>
+  <h2>Missing numbers</h2>
   <p>
-    Nothing. A state absent from a dataset stays absent. It is scored on the
-    indicators it has, its weights renormalised over those, and its coverage is shown
-    so a score resting on partial evidence is visibly doing so. Imputing a value
-    would invent a measurement, and an index that quietly does that is the thing this
-    project argues against.
+    We never fill one in. If a state is missing a measure, it is scored on the ones it
+    has, and the table shows what share of the evidence that score rests on. Guessing a
+    missing value would mean inventing a measurement, which is the thing this project
+    is complaining about.
   </p>
 
-  <h2>The policy indicator is a judgement</h2>
+  <h2>The guidance measure is a judgement call</h2>
   <p>{{ policy.scoring.rationale }}</p>
   <ul class="small">
     {% for note in policy.coding_notes %}<li>{{ note }}</li>{% endfor %}
@@ -51,49 +71,50 @@
 
   <h2>Citing this</h2>
   <p>
-    The index is reproducible from its inputs: NAEP figures come from a public API and
-    the policy dataset is committed to the repository, so a citation can point at the
-    exact recipe rather than at a screenshot.
+    The ranking depends on the settings used to build it, so cite the settings and not a
+    screenshot. Every ranking has its own web address, and the downloads record the
+    settings in the file itself.
   </p>
   <blockquote class="citation">
     State AI Readiness Index. Built {{ data_vintage.built }} from NAEP
     {{ data_vintage.naep }} and state AI guidance current to {{ data_vintage.policy }}.
-    Weights and normalisation are user-selected; the ranking cited should be
-    accompanied by the URL that produced it.
+    Weights are chosen by the reader, so any ranking quoted should come with the link
+    that produced it.
     <a href="{{ repo_url }}" rel="noreferrer">{{ repo_url }}</a>
   </blockquote>
   <p class="small">
     <a href="{{ url_for('download_csv') }}">Download the data as CSV</a> ·
-    <a href="{{ url_for('download_json') }}">as JSON with full source metadata</a>
+    <a href="{{ url_for('download_json') }}">as JSON, with every source</a>
   </p>
 
   <h2>What this does not show</h2>
   <p>
-    It does not show that technology or AI policy causes educational outcomes. These
-    indicators are separately measured and heavily confounded — wealthier states tend
-    to do better on all of them at once, and nothing here separates that out. A state
-    near the top has good test results and has published guidance. That is all it
-    means.
+    It does not show that technology or AI policy causes better schools. These measures
+    are collected separately and are tangled up with each other — richer states tend to
+    do better on all of them at once, and nothing here separates that out. A state near
+    the top has good test scores and has published guidance. That is all it means.
   </p>
 
   <h2>Where it is weak</h2>
   <ul>
     <li>
-      <strong>NAEP runs every two years.</strong> 2024 is the current administration, so this
-      is a snapshot, not a trend, and it cannot show whether anything is improving.
+      <strong>The test scores are from one year.</strong> NAEP runs every two years and 2024
+      is the latest, so this is a snapshot. It cannot tell you whether anything is
+      improving.
     </li>
     <li>
-      <strong>"No guidance found" is not "no guidance".</strong> The policy indicator records
-      absence from a tracker, which is weaker evidence than it looks.
+      <strong>&ldquo;No guidance found&rdquo; is not proof there is none.</strong> It means
+      the tracker we used does not list any. That is weaker evidence than it looks.
     </li>
     <li>
-      <strong>The indicator set is short.</strong> Broadband and device access belong here and
-      are not yet in — see <a href="{{ url_for('sources') }}">Sources</a> for what is
+      <strong>Only three kinds of measure.</strong> Internet and device access belong here
+      and are not in yet. <a href="{{ url_for('sources') }}">Sources</a> says what is
       loaded and what is missing.
     </li>
     <li>
-      <strong>Rank instability is measured against the alternatives we chose.</strong> A wider
-      set of defensible recipes would likely produce a wider swing, not a narrower one.
+      <strong>Test scores measure schools, not AI readiness.</strong> They are the best
+      comparable data available across all 50 states, which is not the same as being the
+      right measure.
     </li>
   </ul>
 </div>

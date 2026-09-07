@@ -1,48 +1,57 @@
-# Project statement
+# What this project is
 
-## One line
+## In one line
 
-A public, sourced index of how ready each U.S. state is to use AI in education —
-and an argument that any such index is a choice, not a measurement.
+A ranking of US states on how ready they are for AI in schools — built so you can
+see how much the ranking depends on choices the author made.
 
 ## The problem
 
-Every few months a report ranks states or districts on "AI readiness" or
-"digital equity," and the rankings drive attention and funding. Almost all of
-them do the same two things: they combine indicators into a single number using
-weights someone picked, and they present the result as if the number were
-discovered rather than authored. Change the weights and the ranking changes —
-but the reader never sees that, because the weights are buried in an appendix,
-if they are published at all.
+Every few months someone publishes a ranking of states on AI readiness or digital
+equity, and those rankings move attention and money.
+
+Every one of them works the same way. Pick some things to measure. Decide how much
+each one counts. Add them up. Publish the order.
+
+The second step is the problem. Nobody measures how much test scores should count
+against internet access — somebody picks a number. Change that number and the order
+changes. Most reports bury the weights in an appendix, if they publish them at all,
+and present the result as though it were discovered rather than chosen.
 
 ## What this does
 
-It builds an index from public data — math and reading performance, broadband
-and device access, state-level AI guidance for schools — and shows the ranking.
+It builds the same kind of ranking from public data — test scores and whether a state
+has published AI guidance for schools — and then does the thing the reports don't:
+it hands you the weights.
 
-Then it does the thing the reports do not: it hands the weights to the reader.
-Move the sliders and the ranking reorders in front of you. Every figure traces
-back to its source and its collection year, and where a state's data is missing
-the interface says so rather than imputing a number.
+Move a slider and watch the table reorder. Then, for any state, it builds a thousand
+rankings with the weights picked at random and shows you every position that state
+landed on. If a state stays put, its rank means something. If it bounces from 9th to
+33rd, it doesn't.
+
+Every number links to where it came from, and where a state is missing data, the site
+says so rather than guessing.
 
 ## What it refuses to claim
 
-It does not show that technology causes educational outcomes. It compares proxy
-indicators that are separately measured and often confounded — wealthier states
-tend to score better on all of them at once. The tool exists to make that
-visible, not to paper over it.
+It does not show that technology or AI policy causes better schools. The measures are
+collected separately and are tangled together — richer states tend to do better on all
+of them at once. The site shows this directly: states with no AI guidance have slightly
+higher test scores than states with it.
 
-## Why it stands up as research
+## Why it holds up as research
 
-The contribution is not the index. It is the demonstration of **rank
-instability**: showing quantitatively how far a state can move under defensible
-alternative weightings. That is a real methodological point about composite
-indicators, it is measurable, and it is arguable.
+The contribution is not the ranking. It's the measurement of how unstable that ranking
+is: the typical state moves 14 places between its better and worse outcomes, and 20
+across its full range, without a single number about the states changing.
 
-## Open questions
+That is a real, checkable claim about how much composite rankings can be trusted, and
+it is arguable — which is what makes it worth arguing about.
 
-- **Name.** "EduCity" implies cities; the unit of analysis is states. Rename, or
-  move to cities and accept far patchier data.
-- **Data.** The statement is only as strong as the sources behind it. Every
-  indicator needs a named public dataset, a collection year, and a licence that
-  permits redistribution.
+## Still open
+
+- **The name.** The folder says State AI Readiness Index. The original repo was called
+  EduCity, which implies cities; the unit here is states.
+- **Internet and device access** belongs in the ranking and is not in it yet. The
+  Census API now needs a key.
+- **Nobody is credited.** Every comparable tool names its authors.

@@ -137,7 +137,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   source.addEventListener("failed", () => {
     source.close();
-    label.textContent = "Could not run the analysis.";
+    label.textContent = "The analysis could not run. Reload the page to try again.";
   });
 
   function render(data) {
@@ -150,10 +150,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const spread = data.p90 - data.p10;
     const reading =
       spread <= 3
-        ? `This position barely moves. Across ${data.trials.toLocaleString()} differently weighted indexes it stayed between #${data.p10} and #${data.p90} four times out of five — the ranking is telling you about the state, not about the recipe.`
+        ? `This rank barely moves. Across ${data.trials.toLocaleString()} rankings it stayed between #${data.p10} and #${data.p90} four times out of five. You can take this position seriously.`
         : spread <= 12
-          ? `This position is moderately sensitive to the weights: four times out of five it fell between #${data.p10} and #${data.p90}, and across every run it ranged from #${data.best} to #${data.worst}.`
-          : `This position depends heavily on the weights. Four times in five it landed between #${data.p10} and #${data.p90}, and over every run it ranged from #${data.best} to #${data.worst} — a rank this movable says more about the index than the state.`;
+          ? `This rank moves a fair amount. Four times in five it landed between #${data.p10} and #${data.p90}, and across every ranking it went from #${data.best} to #${data.worst}. Treat the exact number loosely.`
+          : `This rank is not settled. Four times in five it landed between #${data.p10} and #${data.p90}, and across every ranking it went from #${data.best} to #${data.worst}. A number that moves this much says more about the recipe than about the state.`;
 
     panel.querySelector("[data-reading]").textContent = reading;
     drawHistogram(data);

@@ -3,11 +3,10 @@
 {% block content %}
 
 <section class="hero" style="padding-bottom:1rem">
-  <h1>Two states, indicator by indicator</h1>
+  <h1>Two states, measure by measure</h1>
   <p class="lede">
-    A single score hides which indicators produced it. This shows the parts, so a
-    state that leads on results but trails on policy reads differently from one that
-    does the reverse.
+    One score hides what went into it. Two states can tie while being good at
+    completely different things. This breaks the score back into its parts.
   </p>
 </section>
 
@@ -48,7 +47,7 @@
     <table>
       <thead>
         <tr>
-          <th>Indicator</th>
+          <th>Measure</th>
           <th class="num">{{ names[a.state] }}</th>
           <th class="num">{{ names[b.state] }}</th>
           <th class="num">Weight</th>
@@ -76,10 +75,10 @@
   </div>
 
   <section style="margin-top:2rem">
-    <h2 style="font-size:1.25rem;margin:0 0 0.35rem">Indicator by indicator</h2>
+    <h2 style="font-size:1.25rem;margin:0 0 0.35rem">Measure by measure</h2>
     <p class="small" style="margin:0 0 1rem">
-      Bars show each state's normalised position on that indicator, because the raw
-      units cannot share an axis. The raw figure is printed beside each bar.
+      The bars put both states on the same 0-100 scale so they can be compared side by
+      side. The real number is printed next to each bar.
     </p>
 
     <p class="legend">
@@ -107,8 +106,8 @@
   </section>
 
   <p class="small" style="margin-top:1rem">
-    Raw values are on each indicator's own scale — NAEP scale scores are not
-    percentages, and the policy figure is an ordinal flattened to 0–100.
+    Each measure uses its own scale. Test scores are not percentages — a reading score
+    of 220 is normal, not 22%. The guidance figure is 100, 50 or 0.
     <a href="{{ url_for('methodology') }}">Why that matters</a>.
   </p>
 {% else %}

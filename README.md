@@ -1,23 +1,24 @@
 # State AI Readiness Index
 
-A sourced index of how ready each U.S. state is to use AI in education — and an
-argument that any such index is a choice, not a measurement.
+A ranking of US states on how ready they are for AI in schools, built so you can
+see how much the ranking depends on choices someone made.
 
 ## The point
 
-Reports rank states on "AI readiness" every few months, and the rankings move
-attention and funding. Nearly all of them combine indicators using weights
-somebody picked, then present the result as though it were discovered rather
-than authored.
+Every few months someone publishes a ranking like this, and those rankings move
+attention and money. They all work the same way: pick some things to measure,
+decide how much each one counts, add them up, publish the order.
 
-This one hands the weights to the reader, and reports what happens when they
-move. On the current data, **the median state shifts 26 places out of 50** when
-the index is rebuilt with a different but equally defensible recipe. Alaska
-ranks 44th by default, 1st on policy alone, and 49th on grade-8 reading alone —
-same states, same data, same year.
+The second step is the problem. Nobody measures how much test scores should
+count against internet access — somebody picks a number, and changing it changes
+the order. Most reports bury that choice in an appendix.
 
-That spread is the finding. A ranking that holds still tells you about the
-states; one that reshuffles tells you about whoever built it.
+This one hands you the weights instead, then measures how much they matter. Rank
+all 50 states a thousand times with the weights drawn at random and **the typical
+state moves 14 places** between its better and worse outcomes, and 20 across its
+full range — without a single number about the states changing.
+
+That instability is the finding, and it is the point of the site.
 
 ## Data
 
@@ -26,6 +27,12 @@ states; one that reshuffles tells you about whoever built it.
 | Maths, grades 4 and 8 | NAEP, via the public NCES Data Service | 2024 | 50/50 |
 | Reading, grades 4 and 8 | NAEP, via the public NCES Data Service | 2024 | 50/50 |
 | State AI guidance for schools | AI for Education state tracker | to Aug 2026 | 50/50 |
+
+Instability is measured by sampling: a thousand weightings drawn uniformly at
+random, rather than a handful of hand-picked alternatives. Hand-picked ones
+turned out to overstate the movement badly — including "one indicator alone" as
+an alternative made Alaska look like it could reach 1st, when no random weighting
+ever puts it above 31st.
 
 NAEP figures are fetched live and cached under `data/raw/`. The policy dataset
 is committed at `data/processed/state_ai_policy.json`, with its coding rules

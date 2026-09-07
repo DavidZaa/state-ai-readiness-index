@@ -6,10 +6,10 @@
     <p class="kicker">50 states · NAEP 2024 · state AI guidance to Aug 2026</p>
     <h1>An index is a choice, not a measurement.</h1>
     <p class="lede">
-      Reports rank states on AI readiness every few months, and the rankings move
-      attention and money. Nearly all of them combine indicators using weights
-      somebody picked, then present the result as though it were discovered.
-      This one hands you the weights, and reports what happens when they move.
+      Rankings like this one help decide where attention and money go. But every
+      ranking depends on two choices: which things to measure, and how much each
+      one counts. Someone picks those. Change them and the ranking changes.
+      Most reports don&apos;t show you that. This one lets you do it yourself.
     </p>
     <p class="row" style="margin-top:1.75rem">
       <a class="button button--primary" href="{{ url_for('explore') }}">Build your own ranking</a>
@@ -18,18 +18,17 @@
   </div>
 
   <div class="finding">
-    <p class="kicker" style="margin-bottom:0.5rem">What this index found about itself</p>
+    <p class="kicker" style="margin-bottom:0.5rem">How much the ranking moves</p>
     <p class="finding__number">{{ median_p80|round|int }}</p>
-    <p class="finding__unit">places, typical swing</p>
+    <p class="finding__unit">places the typical state moves</p>
     <p>
-      Ranked a thousand times under weightings drawn at random, the median state moves
-      {{ median_p80|round|int }} positions out of {{ total }} between its
-      better and worse outcomes — and {{ median_full|round|int }} across the full
-      range. Same states, same data, same year.
+      We ranked all {{ total }} states a thousand times, changing how much each measure
+      counts each time. The typical state moved {{ median_p80|round|int }} places, and
+      {{ median_full|round|int }} across its full range.
     </p>
     <p class="small" style="margin:0">
-      A ranking that holds still tells you about the states. One that reshuffles tells
-      you about whoever built it.
+      Nothing about the states changed. Only the recipe did. A rank that moves that
+      much is not really a fact about the state.
     </p>
   </div>
 </section>
@@ -37,9 +36,9 @@
 <section style="margin-top:3rem">
   <h2 style="font-size:1.5rem;margin:0 0 0.5rem">Where each state can land</h2>
   <p class="small" style="max-width:60ch;margin:0 0 1.5rem">
-    Each line covers the middle 80% of where a state landed across a thousand randomly
-    weighted rankings; the dot is its median. The longer the line, the less its
-    position means.
+    Each line shows where a state usually landed across a thousand rankings. The dot is
+    its middle position. A long line means the state&apos;s rank keeps changing depending
+    on the recipe.
   </p>
 
   <ul class="ranges">
@@ -67,8 +66,8 @@
 <section style="margin-top:3rem">
   <h2 style="font-size:1.5rem;margin:0 0 0.5rem">Top {{ rows|length }} on the default weights</h2>
   <p class="small" style="margin:0">
-    30% state AI guidance, 40% grade&nbsp;8 results, 30% grade&nbsp;4 results. A starting
-    point, not a recommendation.
+    Using 30% AI guidance, 40% grade&nbsp;8 scores, 30% grade&nbsp;4 scores. These are
+    just a starting point — change them on the next page.
   </p>
 
   <div class="table-wrap">
@@ -101,9 +100,9 @@
 <section style="margin-top:3.5rem">
   <h2 style="font-size:1.5rem;margin:0 0 0.5rem">Do states with guidance do better?</h2>
   <p class="small" style="max-width:64ch;margin:0 0 1.5rem">
-    Each dot is a state, placed by its average NAEP result. The rows split them by
-    whether the state has published AI guidance. If guidance went with better results
-    the rows would separate — read the overlap yourself.
+    Each dot is a state, placed by its average test score. The rows group states by
+    whether they have published AI guidance for schools. If guidance came with better
+    scores, the rows would sit apart.
   </p>
 
   <div class="strips">
@@ -132,17 +131,16 @@
   </div>
 
   <p class="small" style="max-width:64ch">
-    The rows overlap almost completely, and the states with <em>no</em> guidance have the
-    higher median of the two. Whatever having published guidance indicates, it is not
-    higher test results — which is exactly why this site treats its own ranking as a
-    description and not a finding about what works.
+    The rows sit almost on top of each other, and states with <em>no</em> guidance have the
+    slightly higher middle score. So publishing guidance does not come with better
+    results. That is why this site does not claim its ranking shows what works.
   </p>
 </section>
 
 <section class="lookup">
   <h2 style="font-size:1.25rem;margin:0 0 0.35rem">Look up one state</h2>
   <p class="small" style="margin:0 0 1rem">
-    Its rank, every indicator behind it, and how far it moves under other recipes.
+    See its rank, the numbers behind it, and how much that rank depends on the recipe.
   </p>
   <form class="row" data-state-search>
     <label class="sr-only" for="state-search">State name</label>
