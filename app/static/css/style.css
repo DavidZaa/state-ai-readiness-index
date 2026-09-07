@@ -645,3 +645,108 @@ a { color: var(--accent); }
   text-transform: uppercase;
   color: var(--ink-faint);
 }
+
+/* ------------------------------------------------------------- onboarding */
+
+.welcome {
+  width: min(34rem, calc(100vw - 2rem));
+  padding: 0;
+  background: var(--paper-raised);
+  border: 1px solid var(--rule);
+  border-radius: 2px;
+  color: var(--ink);
+}
+
+.welcome::backdrop { background: rgb(22 22 26 / 45%); }
+
+.welcome__inner { padding: 2rem; }
+
+.welcome__title {
+  max-width: 20ch;
+  margin: 0 0 1.25rem;
+  font-size: clamp(1.6rem, 1.1rem + 2vw, 2.1rem);
+}
+
+.welcome__body p {
+  max-width: 52ch;
+  margin: 0 0 0.9rem;
+  font-size: 0.98rem;
+  line-height: 1.6;
+  color: var(--ink-muted);
+}
+
+.welcome__body p:last-child { color: var(--ink); }
+
+.welcome__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+  align-items: center;
+  margin-top: 1.75rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--rule);
+}
+
+/* The spotlight. Dimming is one very large shadow spread from the highlight,
+   which cuts the hole without masks, and the overlay never takes the pointer
+   so the page stays visible rather than hidden behind a modal. */
+.tour { position: absolute; inset: 0; z-index: 60; }
+
+.tour__spot {
+  position: absolute;
+  border-radius: 3px;
+  box-shadow: 0 0 0 9999px rgb(22 22 26 / 55%);
+  outline: 2px solid var(--paper-raised);
+  pointer-events: none;
+  transition: top 260ms cubic-bezier(0.2, 0, 0.2, 1),
+    left 260ms cubic-bezier(0.2, 0, 0.2, 1),
+    width 260ms cubic-bezier(0.2, 0, 0.2, 1),
+    height 260ms cubic-bezier(0.2, 0, 0.2, 1);
+}
+
+.tour__card {
+  position: absolute;
+  width: 320px;
+  max-width: calc(100vw - 2rem);
+  padding: 1.25rem;
+  background: var(--paper-raised);
+  border: 1px solid var(--rule);
+  border-radius: 2px;
+  box-shadow: 0 8px 24px rgb(22 22 26 / 18%);
+}
+
+.tour__count {
+  margin: 0 0 0.6rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+.tour__title { margin: 0 0 0.5rem; font-size: 1.15rem; }
+
+.tour__body {
+  margin: 0 0 1.25rem;
+  font-size: 0.92rem;
+  line-height: 1.6;
+  color: var(--ink-muted);
+}
+
+.tour__actions { display: flex; gap: 1rem; align-items: center; }
+
+.tour__back,
+.tour__skip {
+  padding: 0;
+  background: none;
+  border: none;
+  color: var(--ink-faint);
+  font-family: var(--sans);
+  font-size: 0.85rem;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+  cursor: pointer;
+}
+
+.tour__skip { margin-left: auto; }
+.tour__back:hover, .tour__skip:hover { color: var(--ink); }

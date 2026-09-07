@@ -1,6 +1,32 @@
 {% extends "base.html" %}
 {% block content %}
 
+<dialog class="welcome" id="welcome" aria-labelledby="welcome-title">
+  <div class="welcome__inner">
+    <p class="kicker">State AI Readiness Index</p>
+    <h2 class="welcome__title" id="welcome-title">Rankings look like facts. They are choices.</h2>
+
+    <div class="welcome__body">
+      <p>
+        Reports rank states on how ready they are for AI in schools. Every one of them
+        picks what to measure, then picks how much each thing counts. Someone chooses
+        those numbers.
+      </p>
+      <p>
+        Change them and the order changes. Most reports never show you that. This site
+        hands you the controls, and measures how much the ranking moves when you use them.
+      </p>
+      <p>All the data is public, and every number links to where it came from.</p>
+    </div>
+
+    <div class="welcome__actions">
+      <button type="button" class="button--primary" data-welcome-tour>Show me around</button>
+      <button type="button" class="tour__skip" data-welcome-dismiss>I&apos;ll look myself</button>
+    </div>
+  </div>
+</dialog>
+
+
 <section class="frontispiece">
   <div>
     <p class="kicker">50 states · NAEP 2024 · state AI guidance to Aug 2026</p>
@@ -14,6 +40,7 @@
     <p class="row" style="margin-top:1.75rem">
       <a class="button button--primary" href="{{ url_for('explore') }}">Build your own ranking</a>
       <a class="button" href="{{ url_for('methodology') }}">How it works</a>
+      <button type="button" class="button" data-replay-tour>Take the tour</button>
     </p>
   </div>
 
