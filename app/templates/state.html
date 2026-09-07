@@ -52,6 +52,38 @@
     </div>
   </section>
 
+  <section class="analysis" data-analysis data-code="{{ code }}" style="margin-top:2.5rem">
+    <h2 style="font-size:1.5rem;margin:0 0 0.35rem">How stable is that position?</h2>
+    <p class="small" style="max-width:64ch;margin:0 0 1.25rem">
+      Rather than trust one set of weights, this ranks all 50 states thousands of times
+      under weightings drawn at random, and records where {{ names[code] }} lands each
+      time. Nothing is pre-computed — the work runs now.
+    </p>
+
+    <div class="progress" data-progress>
+      <div class="progress__bar"><span data-progress-fill></span></div>
+      <p class="progress__label" data-progress-label>Starting…</p>
+    </div>
+
+    <div class="analysis__result" data-result hidden>
+      <div class="analysis__summary">
+        <div>
+          <p class="finding__number" data-median>—</p>
+          <p class="finding__unit">median rank across <span data-trials>—</span> rankings</p>
+        </div>
+        <p class="analysis__reading" data-reading></p>
+      </div>
+
+      <h3 style="font-size:1.05rem;margin:1.75rem 0 0.35rem">Every position it reached</h3>
+      <p class="small" style="margin:0 0 0.75rem">
+        Each bar is one rank; height is how often {{ names[code] }} landed there. The shaded
+        band is the middle 80% of outcomes.
+      </p>
+      <div class="histogram" data-histogram role="img" aria-label="Distribution of ranks"></div>
+      <p class="histogram__scale"><span>Rank 1</span><span>Rank 50</span></p>
+    </div>
+  </section>
+
   <section style="margin-top:2.5rem">
     <h2 style="font-size:1.5rem;margin:0 0 1rem">What produced that score</h2>
     <div class="table-wrap">

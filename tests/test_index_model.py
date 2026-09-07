@@ -177,3 +177,77 @@ class TestRankMap:
         rows = score_states([indicator("a", {"CA": 10, "TX": 20})], {"a": 1.0})
 
         assert rank_map(rows) == {"TX": 1, "CA": 2}
+
+
+class TestRandomWeightings:
+    def test_every_draw_sums_to_one(self):
+        from app.index_model import random_weightings
+
+        for weights in random_weightings(["a", "b", "c"], 50):
+            assert abs(sum(weights.values()) - 1.0) < 1e-9
+
+    def test_draws_are_non_negative(self):
+        from app.index_model import random_weightings
+
+        for weights in random_weightings(["a", "b"], 50):
+            assert all(value >= 0 for value in weights.values())
+
+    # A screenshot of a distribution should be reproducible, and a reader who
+    # reruns the analysis should get the same answer.
+    def test_the_same_seed_gives_the_same_draws(self):
+        from app.index_model import random_weightings
+
+        assert random_weightings(["a", "b"], 20, seed=7) == random_weightings(["a", "b"], 20, seed=7)
+
+    def test_different_seeds_differ(self):
+        from app.index_model import random_weightings
+
+        assert random_weightings(["a", "b"], 20, seed=1) != random_weightings(["a", "b"], 20, seed=2)
+
+
+class TestDistributions:
+    def _indicators(self):
+        return [
+            indicator("a", {"CA": 100, "TX": 50, "NY": 0}),
+            indicator("b", {"CA": 0, "TX": 50, "NY": 100}),
+        ]
+
+    def test_a_state_that_leads_everything_never_moves(self):
+        from app.index_model import rank_distribution
+
+        result = rank_distribution(
+            [indicator("a", {"CA": 100, "TX": 0}), indicator("b", {"CA": 100, "TX": 0})],
+            "CA",
+            trials=40,
+        )
+
+        assert result["best"] == result["worst"] == 1
+
+    def test_percentiles_sit_inside_the_full_range(self):
+        from app.index_model import rank_distribution
+
+        result = rank_distribution(self._indicators(), "TX", trials=60)
+
+        assert result["best"] <= result["p10"] <= result["median"] <= result["p90"] <= result["worst"]
+
+    # One pass must give the same answer as sampling each state separately,
+    # since it is the same weightings applied to the same data.
+    def test_one_pass_matches_per_state_sampling(self):
+        from app.index_model import all_distributions, rank_distribution
+
+        indicators = self._indicators()
+        shared = all_distributions(indicators, trials=30, seed=3)
+        alone = rank_distribution(indicators, "TX", trials=30, seed=3)
+
+        assert shared["TX"]["median"] == alone["median"]
+        assert shared["TX"]["best"] == alone["best"]
+
+    def test_stream_ends_with_the_same_result(self):
+        from app.index_model import rank_distribution, rank_distribution_stream
+
+        indicators = self._indicators()
+        events = list(rank_distribution_stream(indicators, "TX", trials=40, every=10))
+
+        assert [event[0] for event in events[:-1]] == ["progress"] * (len(events) - 1)
+        assert events[-1][0] == "result"
+        assert events[-1][1]["median"] == rank_distribution(indicators, "TX", trials=40)["median"]

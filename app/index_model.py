@@ -19,6 +19,7 @@ movement is the honest measure of how much the ranking means.
 
 from __future__ import annotations
 
+import random
 import statistics
 from dataclasses import dataclass, field
 
@@ -205,3 +206,139 @@ def rank_instability(
         }
         for state, ranks in observed.items()
     }
+
+
+def random_weightings(keys: list[str], trials: int, seed: int = 0) -> list[dict[str, float]]:
+    """Draws weightings uniformly from the simplex.
+
+    Dirichlet(1) over the indicators, which is the uniform distribution over
+    every weighting that sums to one. Deliberately not a spread of "reasonable"
+    weightings — choosing which weightings count as reasonable is the same
+    judgement the project is questioning, so the sample refuses to make it.
+
+    Seeded, because a reader who reruns the analysis should get the same
+    distribution and a screenshot should be reproducible.
+    """
+    generator = random.Random(seed)
+    draws = []
+
+    for _ in range(trials):
+        # Exponential samples normalised to sum 1 is Dirichlet(1, ..., 1).
+        raw = [generator.expovariate(1.0) for _ in keys]
+        total = sum(raw) or 1.0
+        draws.append({key: value / total for key, value in zip(keys, raw)})
+
+    return draws
+
+
+def rank_distribution(
+    indicators: list[Indicator],
+    state: str,
+    *,
+    trials: int = 400,
+    seed: int = 0,
+    progress=None,
+) -> dict:
+    """Where one state lands across many randomly weighted indexes.
+
+    This is the honest version of the instability claim. Hand-picked
+    alternatives can be accused of being chosen to make the point; a uniform
+    sample over all possible weightings cannot, because it makes no choice at
+    all.
+
+    `progress` is called with (done, total) so the interface can report real
+    work rather than animate a fake delay.
+    """
+    keys = [indicator.key for indicator in indicators]
+    positions: list[int] = []
+
+    for index, weights in enumerate(random_weightings(keys, trials, seed), start=1):
+        for method in NORMALISERS:
+            ranks = rank_map(score_states(indicators, weights, method=method))
+
+            if state in ranks:
+                positions.append(ranks[state])
+
+        if progress and index % 20 == 0:
+            progress(index, trials)
+
+    if progress:
+        progress(trials, trials)
+
+    return _summarise_positions(state, positions)
+
+
+def rank_distribution_stream(
+    indicators: list[Indicator],
+    state: str,
+    *,
+    trials: int = 2000,
+    seed: int = 0,
+    every: int = 50,
+):
+    """`rank_distribution` as a generator, so progress can be streamed.
+
+    Yields ("progress", done, total) as it works and finally ("result", data).
+    Written as a generator rather than taking a callback because the caller is
+    an SSE response: it has to hand each update to the client at the moment it
+    happens, not collect them and flush at the end.
+    """
+    keys = [indicator.key for indicator in indicators]
+    positions: list[int] = []
+
+    for index, weights in enumerate(random_weightings(keys, trials, seed), start=1):
+        for method in NORMALISERS:
+            ranks = rank_map(score_states(indicators, weights, method=method))
+
+            if state in ranks:
+                positions.append(ranks[state])
+
+        if index % every == 0 or index == trials:
+            yield ("progress", index, trials)
+
+    yield ("result", _summarise_positions(state, positions), trials)
+
+
+def _summarise_positions(state: str, positions: list[int]) -> dict:
+    if not positions:
+        return {"state": state, "trials": 0, "positions": []}
+
+    ordered = sorted(positions)
+    counts: dict[int, int] = {}
+
+    for position in positions:
+        counts[position] = counts.get(position, 0) + 1
+
+    def percentile(fraction: float) -> int:
+        return ordered[min(len(ordered) - 1, int(len(ordered) * fraction))]
+
+    return {
+        "state": state,
+        "trials": len(positions),
+        "best": ordered[0],
+        "worst": ordered[-1],
+        "median": ordered[len(ordered) // 2],
+        "p10": percentile(0.10),
+        "p90": percentile(0.90),
+        "counts": counts,
+        "mean": round(sum(ordered) / len(ordered), 1),
+    }
+
+
+def all_distributions(indicators: list[Indicator], *, trials: int = 500, seed: int = 0) -> dict:
+    """Every state's rank distribution, from one shared set of weightings.
+
+    Running the sample per state would repeat identical work fifty times: each
+    ranking already places all fifty states, so one pass yields every
+    distribution. This is what makes an honest site-wide instability figure
+    cheap enough to compute at startup.
+    """
+    keys = [indicator.key for indicator in indicators]
+    positions: dict[str, list[int]] = {}
+
+    for weights in random_weightings(keys, trials, seed):
+        for method in NORMALISERS:
+            for state, rank in rank_map(score_states(indicators, weights, method=method)).items():
+                positions.setdefault(state, []).append(rank)
+
+    return {state: _summarise_positions(state, ranks) for state, ranks in positions.items()}

@@ -23,7 +23,12 @@ from app.data.loader import (
     parse_weights,
 )
 from app.charts import SERIES_A, SERIES_B, comparison_series, policy_strips
-from app.index_model import rank_instability, score_states
+from app.index_model import (
+    all_distributions,
+    rank_distribution_stream,
+    rank_instability,
+    score_states,
+)
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -36,6 +41,18 @@ def create_app(root: Path = ROOT) -> Flask:
     # per request would just make a public service carry our traffic.
     indicators, policy_payload = load_indicators(root)
     by_key = {indicator.key: indicator for indicator in indicators}
+
+    # The site-wide instability figure, from weightings drawn at random rather
+    # than hand-picked. The earlier headline compared the default ranking
+    # against every-indicator-alone, and single-indicator indexes are extreme
+    # by construction — that inflated the swing from 20 places to 26, and let
+    # Alaska appear to reach 1st when no random weighting ever puts it above
+    # 31st. One shared pass costs about a third of a second at startup.
+    distributions = all_distributions(indicators, trials=500)
+    median_full = statistics.median(
+        d["worst"] - d["best"] for d in distributions.values()
+    )
+    median_p80 = statistics.median(d["p90"] - d["p10"] for d in distributions.values())
 
     def context(args):
         weights = parse_weights(args, indicators)
@@ -52,11 +69,13 @@ def create_app(root: Path = ROOT) -> Flask:
     def index():
         weights, method, rows = context(request.args)
         swings = rank_instability(indicators, weights, method=method)
-        median_swing = statistics.median(s["swing"] for s in swings.values()) if swings else 0
-        most_unstable = sorted(swings.items(), key=lambda kv: -kv[1]["swing"])[:3]
-        # The range chart shows the widest travellers first, because the
-        # argument is about how far a position can move.
-        spread = sorted(swings.items(), key=lambda kv: -kv[1]["swing"])[:12]
+        # The range chart is drawn from the sampled distributions, not the
+        # hand-picked alternatives, so the chart and the headline are measuring
+        # the same thing. Widest travellers first — the argument is about how
+        # far a position can move.
+        spread = sorted(
+            distributions.items(), key=lambda kv: -(kv[1]["p90"] - kv[1]["p10"])
+        )[:12]
 
         return render_template(
             "index.html",
@@ -66,8 +85,8 @@ def create_app(root: Path = ROOT) -> Flask:
             weights=weights,
             method=method,
             names=STATE_NAMES,
-            median_swing=median_swing,
-            most_unstable=most_unstable,
+            median_full=median_full,
+            median_p80=median_p80,
             spread=spread,
             swings=swings,
             strips=policy_strips(indicators, STATE_NAMES),
@@ -136,6 +155,52 @@ def create_app(root: Path = ROOT) -> Flask:
             swing=swings.get(code),
             total=len(rows),
         ), (200 if row else 404)
+
+    # The analysis stream.
+    #
+    # This reports real progress through real work: a few thousand rankings are
+    # genuinely computed while the reader waits. Animating a fake delay and
+    # calling it AI thinking would have been easier, and on a site whose whole
+    # argument is that indices dress up authored choices as discovered facts,
+    # it would have been the exact dishonesty this project criticises.
+    @app.route("/analyse/<code>/stream")
+    def analyse_stream(code):
+        code = code.upper()
+        trials = max(200, min(4000, request.args.get("trials", 2000, type=int) or 2000))
+
+        def send(event, payload):
+            return f"event: {event}\ndata: {json.dumps(payload)}\n\n"
+
+        def events():
+            if code not in STATE_NAMES:
+                yield send("failed", {"error": "unknown state"})
+                return
+
+            yield send("step", {
+                "label": f"Loading {len(indicators)} indicators for 50 states",
+                "done": 0, "total": trials,
+            })
+
+            for event in rank_distribution_stream(indicators, code, trials=trials):
+                if event[0] == "progress":
+                    _, done, total = event
+                    yield send("step", {
+                        "label": f"Ranking 50 states under {done:,} random weightings",
+                        "done": done, "total": total,
+                    })
+                else:
+                    _, result, total = event
+                    yield send("step", {
+                        "label": "Measuring where this state lands",
+                        "done": total, "total": total,
+                    })
+                    yield send("result", result)
+
+        return Response(
+            events(),
+            mimetype="text/event-stream",
+            headers={"Cache-Control": "no-cache, no-transform", "X-Accel-Buffering": "no"},
+        )
 
     # Every serious data tool lets you take the data away and check it. These
     # export exactly what the reader is looking at — the weights and the

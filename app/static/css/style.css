@@ -557,3 +557,91 @@ a { color: var(--accent); }
 @media (max-width: 40rem) {
   .strip, .strip__scale, .grouped__row { grid-template-columns: 1fr; }
 }
+
+/* --------------------------------------------------------- live analysis */
+
+.search-input {
+  flex: 1 1 16rem;
+  min-width: 0;
+  padding: 0.5rem 0.85rem;
+  background: var(--paper);
+  color: var(--ink);
+  border: 1px solid var(--rule-strong);
+  border-radius: 2px;
+  font-family: var(--sans);
+  font-size: 0.95rem;
+}
+
+.search-error { color: var(--volatile); flex-basis: 100%; }
+
+.progress { margin: 1.5rem 0 0; }
+
+.progress__bar {
+  height: 4px;
+  background: var(--paper-sunk);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.progress__bar span {
+  display: block;
+  width: 0;
+  height: 100%;
+  background: var(--accent);
+  /* Eased, but driven by real completion counts from the server rather than
+     by a timer — the bar cannot run ahead of the work. */
+  transition: width 240ms linear;
+}
+
+.progress__label {
+  margin: 0.6rem 0 0;
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-faint);
+}
+
+.analysis__summary {
+  display: grid;
+  gap: 1.25rem 2.5rem;
+  align-items: start;
+  padding: 1.5rem;
+  background: var(--paper-raised);
+  border: 1px solid var(--rule);
+}
+
+@media (min-width: 46rem) {
+  .analysis__summary { grid-template-columns: auto 1fr; }
+}
+
+.analysis__reading { margin: 0; font-size: 0.95rem; color: var(--ink-muted); max-width: 60ch; }
+
+/* One bar per rank. Height is frequency; the band marks the middle 80% so the
+   rare extremes are visible without being mistaken for the typical case. */
+.histogram {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 150px;
+  padding-top: 0.5rem;
+  border-bottom: 1px solid var(--rule);
+}
+
+.histogram__bar {
+  flex: 1 1 0;
+  min-height: 1px;
+  background: var(--rule);
+  border-radius: 2px 2px 0 0;
+}
+
+.histogram__bar[data-band] { background: #a8c2da; }
+.histogram__bar[data-median] { background: var(--accent); }
+
+.histogram__scale {
+  display: flex;
+  justify-content: space-between;
+  margin: 0.4rem 0 0;
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
