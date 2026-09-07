@@ -1,0 +1,15 @@
+# Render blueprint. Point Render at this repo and it reads this file.
+#
+# The free plan spins a service down after 15 minutes idle and takes about a
+# minute to wake, which a judge clicking a link will notice. Starter is $7/mo
+# and stays warm — worth it while anything is being reviewed.
+services:
+  - type: web
+    name: state-ai-readiness-index
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn --bind 0.0.0.0:$PORT --workers 2 --timeout 120 app.server:app
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.3

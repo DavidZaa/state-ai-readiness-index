@@ -10,6 +10,7 @@ from __future__ import annotations
 import csv
 import io
 import json
+import os
 import statistics
 from datetime import date
 from pathlib import Path
@@ -31,6 +32,14 @@ from app.index_model import (
 )
 
 ROOT = Path(__file__).resolve().parents[1]
+
+# Shown in the footer. Every comparable tool names who made it, and an
+# uncredited tool reads as unfinished. Set these before publishing.
+AUTHOR = os.environ.get("SARI_AUTHOR", "")
+AUTHOR_URL = os.environ.get("SARI_AUTHOR_URL", "")
+REPO_URL = os.environ.get(
+    "SARI_REPO_URL", "https://github.com/DavidZaa/state-ai-readiness-index"
+)
 
 
 def create_app(root: Path = ROOT) -> Flask:
@@ -328,7 +337,9 @@ def create_app(root: Path = ROOT) -> Flask:
         "policy": policy_payload.get("source_last_updated", "2026"),
         "built": date.today().isoformat(),
     }
-    app.jinja_env.globals["repo_url"] = "https://github.com/DavidZaa/state-ai-readiness-index"
+    app.jinja_env.globals["repo_url"] = REPO_URL
+    app.jinja_env.globals["author"] = AUTHOR
+    app.jinja_env.globals["author_url"] = AUTHOR_URL
 
     return app
 

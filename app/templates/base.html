@@ -48,6 +48,15 @@
           <dt>Code</dt>
           <dd><a href="{{ repo_url }}" rel="noreferrer">GitHub</a></dd>
         </div>
+        {% if author %}
+          <div>
+            <dt>Built by</dt>
+            <dd>
+              {% if author_url %}<a href="{{ author_url }}" rel="noreferrer">{{ author }}</a>
+              {% else %}{{ author }}{% endif %}
+            </dd>
+          </div>
+        {% endif %}
       </dl>
     </footer>
   </div>

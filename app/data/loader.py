@@ -67,9 +67,29 @@ def load_policy(root: Path) -> tuple[Indicator, dict]:
     return indicator, payload
 
 
+def load_naep_series(root: Path, *, use_cache: bool = True) -> dict[str, dict[str, float]]:
+    """The NAEP figures, from the committed snapshot if there is one.
+
+    A deployed server has no local cache, and booting should not depend on a
+    call to a government API that is slow and not ours to rely on. The snapshot
+    ships with the code; the live fetch stays as the fallback so local work
+    still picks up a refresh.
+    """
+    snapshot = root / "data" / "processed" / "naep_2024.json"
+
+    if snapshot.exists():
+        payload = json.loads(snapshot.read_text())
+        series = payload.get("series") or {}
+
+        if series:
+            return series
+
+    return fetch_all(root=root, use_cache=use_cache)
+
+
 def load_indicators(root: Path, *, use_cache: bool = True) -> tuple[list[Indicator], dict]:
     """Returns the indicators plus the raw policy payload for the sources page."""
-    series = fetch_all(root=root, use_cache=use_cache)
+    series = load_naep_series(root, use_cache=use_cache)
 
     indicators = [
         Indicator(

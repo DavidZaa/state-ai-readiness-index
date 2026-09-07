@@ -63,6 +63,24 @@ later starts read the cache.
 ./.venv/bin/python -m pytest tests/ -q      # index maths
 ```
 
+## Putting it online
+
+The app reads its data from committed files, so a deployed server never calls the
+NAEP API at startup. Refresh the data with `python scripts/snapshot_naep.py` and
+commit the result.
+
+```bash
+gunicorn --bind 0.0.0.0:$PORT --workers 2 --timeout 120 app.server:app
+```
+
+`Procfile` and `render.yaml` are set up for Render; the same start command works
+on Railway, Fly and Heroku. Set `SARI_AUTHOR`, `SARI_AUTHOR_URL` and
+`SARI_REPO_URL` so the footer credits someone and links to real code.
+
+Note that Render's free plan sleeps after 15 minutes idle and takes about a
+minute to wake — fine for a link you send occasionally, poor for a judge
+clicking through. PythonAnywhere's free tier stays awake and suits Flask well.
+
 ## Layout
 
 ```text
