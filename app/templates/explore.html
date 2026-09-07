@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}Explore — State AI Readiness Index{% endblock %}
+{% block content %}
+
+<section class="hero" style="padding-bottom:1rem">
+  <h1>Build your own ranking</h1>
+  <p class="lede">
+    Move a weight and the table reorders. The <em>swing</em> column shows how far each
+    state travels across every alternative index we test, so you can see which
+    positions are real and which are artefacts of the recipe.
+  </p>
+</section>
+
+{% include "_weights.html" %}
+
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>#</th><th>State</th><th class="num">Score</th><th style="width:20%">&nbsp;</th>
+        <th class="num">Swing</th><th>Range</th><th class="num">Coverage</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in rows %}
+        {% set swing = swings.get(row.state) %}
+        <tr>
+          <td class="rank">{{ row.rank }}</td>
+          <td class="state-name">{{ names[row.state] }}</td>
+          <td class="num">{{ '%.1f'|format(row.score) }}</td>
+          <td><div class="bar"><span style="width: {{ row.score }}%"></span></div></td>
+          <td class="num">
+            {% if swing %}
+              <span class="swing" data-level="{{ 'low' if swing.swing < 10 else ('mid' if swing.swing < 25 else 'high') }}">
+                ±{{ swing.swing }}
+              </span>
+            {% else %}<span class="missing">—</span>{% endif %}
+          </td>
+          <td class="small">{% if swing %}#{{ swing.best }} – #{{ swing.worst }}{% endif %}</td>
+          <td class="num small">
+            {% if row.coverage < 1 %}
+              <span class="missing">{{ row.coverage|pct }}</span>
+            {% else %}100%{% endif %}
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<p class="small" style="margin-top:1rem">
+  Coverage below 100% means the state is missing at least one indicator. Its score is
+  computed from what exists; nothing is filled in.
+</p>
+
+{% endblock %}

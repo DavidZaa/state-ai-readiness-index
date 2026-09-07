@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}Sources — State AI Readiness Index{% endblock %}
+{% block content %}
+
+<section class="hero" style="padding-bottom:1rem">
+  <h1>Every number, and where it came from</h1>
+  <p class="lede">
+    An index is only worth as much as its inputs, so here they are with their sources,
+    their collection dates, and their gaps.
+  </p>
+</section>
+
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr><th>Indicator</th><th>Source</th><th>Year</th><th class="num">States</th><th>Missing</th></tr>
+    </thead>
+    <tbody>
+      {% for indicator in indicators %}
+        <tr>
+          <td>{{ indicator.label }}</td>
+          <td class="small"><a href="{{ indicator.source_url }}" rel="noreferrer">{{ indicator.source }}</a></td>
+          <td class="small">{{ indicator.year }}</td>
+          <td class="num">{{ coverage[indicator.key].have }}/50</td>
+          <td class="small">
+            {% if coverage[indicator.key].missing %}
+              <span class="missing">{{ coverage[indicator.key].missing|join(', ') }}</span>
+            {% else %}none{% endif %}
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<div class="prose">
+  <h2>Not yet loaded</h2>
+  <p>
+    <strong>Broadband and device access.</strong> The statement calls for a connectivity
+    indicator and there isn't one yet. The Census ACS tables carry it, but the API now
+    requires a key, so it needs a deliberate fetch rather than a guess. It is listed
+    here as absent instead of being quietly dropped from the description.
+  </p>
+
+  <h2>How the policy indicator was coded</h2>
+  <p class="small">
+    Source: <a href="{{ policy.source_url }}" rel="noreferrer">{{ policy.source }}</a>,
+    last updated {{ policy.source_last_updated }}, collected {{ policy.collected }}.
+  </p>
+  <ul class="small">
+    {% for note in policy.coding_notes %}<li>{{ note }}</li>{% endfor %}
+  </ul>
+
+  <h2>Reproducing this</h2>
+  <p class="small">
+    NAEP figures are fetched live from the public Data Service and cached under
+    <code>data/raw/</code>. The policy dataset is committed at
+    <code>data/processed/state_ai_policy.json</code> so any change to it shows up as a
+    reviewable diff rather than a silent edit.
+  </p>
+</div>
+
+{% endblock %}

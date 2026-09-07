@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block title %}Compare — State AI Readiness Index{% endblock %}
+{% block content %}
+
+<section class="hero" style="padding-bottom:1rem">
+  <h1>Two states, indicator by indicator</h1>
+  <p class="lede">
+    A single score hides which indicators produced it. This shows the parts, so a
+    state that leads on results but trails on policy reads differently from one that
+    does the reverse.
+  </p>
+</section>
+
+<form class="panel" method="get">
+  <div class="row">
+    <label class="small" for="a">State A</label>
+    <select name="a" id="a">
+      {% for code in states %}<option value="{{ code }}" {% if code == a_code %}selected{% endif %}>{{ names[code] }}</option>{% endfor %}
+    </select>
+    <label class="small" for="b">State B</label>
+    <select name="b" id="b">
+      {% for code in states %}<option value="{{ code }}" {% if code == b_code %}selected{% endif %}>{{ names[code] }}</option>{% endfor %}
+    </select>
+    {% for indicator in indicators %}
+      <input type="hidden" name="w_{{ indicator.key }}" value="{{ weights[indicator.key] }}">
+    {% endfor %}
+    <input type="hidden" name="method" value="{{ method }}">
+    <button class="button--primary" type="submit">Compare</button>
+  </div>
+</form>
+
+{% if a and b %}
+  <section class="panel versus">
+    <div class="versus__side">
+      <h2>{{ names[a.state] }}</h2>
+      <p class="versus__score">{{ '%.1f'|format(a.score) }}</p>
+      <p class="small">rank #{{ a.rank }}{% if swings.get(a.state) %} · swings ±{{ swings[a.state].swing }}{% endif %}</p>
+    </div>
+    <p class="versus__gap">{{ '%.1f'|format((a.score - b.score)|abs) }}<br>apart</p>
+    <div class="versus__side">
+      <h2>{{ names[b.state] }}</h2>
+      <p class="versus__score">{{ '%.1f'|format(b.score) }}</p>
+      <p class="small">rank #{{ b.rank }}{% if swings.get(b.state) %} · swings ±{{ swings[b.state].swing }}{% endif %}</p>
+    </div>
+  </section>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Indicator</th>
+          <th class="num">{{ names[a.state] }}</th>
+          <th class="num">{{ names[b.state] }}</th>
+          <th class="num">Weight</th>
+          <th>Source year</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for indicator in indicators %}
+          <tr>
+            <td>{{ indicator.label }}</td>
+            <td class="num">
+              {% if indicator.key in a.raw %}{{ '%.1f'|format(a.raw[indicator.key]) }}
+              {% else %}<span class="missing">no data</span>{% endif %}
+            </td>
+            <td class="num">
+              {% if indicator.key in b.raw %}{{ '%.1f'|format(b.raw[indicator.key]) }}
+              {% else %}<span class="missing">no data</span>{% endif %}
+            </td>
+            <td class="num small">{{ '%.2f'|format(weights[indicator.key]) }}</td>
+            <td class="small">{{ indicator.year }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <p class="small" style="margin-top:1rem">
+    Raw values are on each indicator's own scale — NAEP scale scores are not
+    percentages, and the policy figure is an ordinal flattened to 0–100.
+    <a href="{{ url_for('methodology') }}">Why that matters</a>.
+  </p>
+{% else %}
+  <p class="missing">Pick two states.</p>
+{% endif %}
+
+{% endblock %}

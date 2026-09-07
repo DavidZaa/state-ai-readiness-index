@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block content %}
+
+<section class="hero">
+  <p class="kicker">50 states · NAEP 2024 · state AI guidance to Aug 2026</p>
+  <h1>An index is a choice, not a measurement.</h1>
+  <p class="lede">
+    Reports rank states on AI readiness every few months, and the rankings move
+    attention and money. Nearly all of them combine indicators using weights
+    somebody picked, then present the result as though it were discovered.
+    This one hands you the weights.
+  </p>
+  <p class="row" style="margin-top:2rem">
+    <a class="button button--primary" href="{{ url_for('explore') }}">Build your own ranking</a>
+    <a class="button" href="{{ url_for('methodology') }}">How it works</a>
+  </p>
+</section>
+
+<section class="panel panel--finding">
+  <p class="kicker">What this index found about itself</p>
+  <p class="finding__number">{{ median_swing|round|int }} places</p>
+  <p class="prose">
+    The median state moves {{ median_swing|round|int }} positions out of {{ total }} when the
+    index is rebuilt using a different — equally defensible — set of weights or a
+    different normalisation. Same states, same data, same year.
+  </p>
+  <ul class="small">
+    {% for code, swing in most_unstable %}
+      <li>
+        <strong>{{ names[code] }}</strong> sits {{ swing.baseline|ordinal }} here, but ranks as high as
+        {{ swing.best }} and as low as {{ swing.worst }} depending on the choices made.
+      </li>
+    {% endfor %}
+  </ul>
+  <p class="small">
+    That spread is the point. A ranking that holds still tells you about the states;
+    one that reshuffles tells you about whoever built it.
+  </p>
+</section>
+
+<section>
+  <h2>Top {{ rows|length }} on the default weights</h2>
+  <p class="small">
+    Defaults are 30% state AI guidance, 40% grade&nbsp;8 results, 30% grade&nbsp;4 results.
+    They are a starting point, not a recommendation.
+  </p>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>#</th><th>State</th><th>Score</th><th style="width:35%">&nbsp;</th></tr>
+      </thead>
+      <tbody>
+        {% for row in rows %}
+          <tr>
+            <td class="rank">{{ row.rank }}</td>
+            <td class="state-name">{{ names[row.state] }}</td>
+            <td class="num">{{ '%.1f'|format(row.score) }}</td>
+            <td><div class="bar"><span style="width: {{ row.score }}%"></span></div></td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <p style="margin-top:1.5rem">
+    <a class="button" href="{{ url_for('explore') }}">See all {{ total }} states →</a>
+  </p>
+</section>
+
+{% endblock %}

@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block title %}Method — State AI Readiness Index{% endblock %}
+{% block content %}
+
+<section class="hero" style="padding-bottom:1rem">
+  <h1>How the index works, and where it fails</h1>
+  <p class="lede">
+    Two decisions turn these indicators into a ranking. Both are arguable, and this
+    page names them rather than putting them in an appendix.
+  </p>
+</section>
+
+<div class="prose">
+  <h2>1. Normalisation</h2>
+  <p>
+    The inputs are not comparable. A grade-8 maths scale score near 283 and a policy
+    status of "issued" are different kinds of number, so putting them in one average
+    means deciding what counts as 0 and what counts as 100.
+  </p>
+  <p>
+    <strong>Min-max</strong> makes the best state 100 and the worst 0. It reads clearly and
+    it is what most published indices use — but if every state falls between 78 and
+    82, it stretches four real points across the whole scale and makes near-ties look
+    decisive. <strong>Z-scores</strong> keep the true spread, so an average state lands in the
+    middle instead of at an extreme, at the cost of a scale with no natural ends.
+    Neither is correct. You can switch between them and watch what changes.
+  </p>
+
+  <h2>2. Weighting</h2>
+  <p>
+    How much each indicator counts. The defaults here are
+    {% for key, value in defaults.items() %}{{ (value * 100)|round|int }}% {{ by_key[key].label|lower }}{% if not loop.last %}, {% endif %}{% endfor %}.
+    There is no principled reason for those numbers. That is the honest position:
+    every published index picks weights, and the ranking follows from the pick.
+  </p>
+
+  <h2>What we do with missing data</h2>
+  <p>
+    Nothing. A state absent from a dataset stays absent. It is scored on the
+    indicators it has, its weights renormalised over those, and its coverage is shown
+    so a score resting on partial evidence is visibly doing so. Imputing a value
+    would invent a measurement, and an index that quietly does that is the thing this
+    project argues against.
+  </p>
+
+  <h2>The policy indicator is a judgement</h2>
+  <p>{{ policy.scoring.rationale }}</p>
+  <ul class="small">
+    {% for note in policy.coding_notes %}<li>{{ note }}</li>{% endfor %}
+  </ul>
+
+  <h2>What this does not show</h2>
+  <p>
+    It does not show that technology or AI policy causes educational outcomes. These
+    indicators are separately measured and heavily confounded — wealthier states tend
+    to do better on all of them at once, and nothing here separates that out. A state
+    near the top has good test results and has published guidance. That is all it
+    means.
+  </p>
+
+  <h2>Where it is weak</h2>
+  <ul>
+    <li>
+      <strong>NAEP runs every two years.</strong> 2024 is the current administration, so this
+      is a snapshot, not a trend, and it cannot show whether anything is improving.
+    </li>
+    <li>
+      <strong>"No guidance found" is not "no guidance".</strong> The policy indicator records
+      absence from a tracker, which is weaker evidence than it looks.
+    </li>
+    <li>
+      <strong>The indicator set is short.</strong> Broadband and device access belong here and
+      are not yet in — see <a href="{{ url_for('sources') }}">Sources</a> for what is
+      loaded and what is missing.
+    </li>
+    <li>
+      <strong>Rank instability is measured against the alternatives we chose.</strong> A wider
+      set of defensible recipes would likely produce a wider swing, not a narrower one.
+    </li>
+  </ul>
+</div>
+
+{% endblock %}

@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}State AI Readiness Index{% endblock %}</title>
+  <meta name="description" content="A sourced index of how ready each US state is to use AI in education — and an argument that any such index is a choice, not a measurement.">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+  <div class="vanta-globe" aria-hidden="true"></div>
+
+  <div class="shell">
+    <header class="masthead">
+      <a class="masthead__mark" href="{{ url_for('index') }}">State AI Readiness Index</a>
+      <nav class="masthead__nav" aria-label="Sections">
+        <a href="{{ url_for('explore') }}" {% if request.endpoint == 'explore' %}aria-current="page"{% endif %}>Explore</a>
+        <a href="{{ url_for('compare') }}" {% if request.endpoint == 'compare' %}aria-current="page"{% endif %}>Compare</a>
+        <a href="{{ url_for('methodology') }}" {% if request.endpoint == 'methodology' %}aria-current="page"{% endif %}>Method</a>
+        <a href="{{ url_for('sources') }}" {% if request.endpoint == 'sources' %}aria-current="page"{% endif %}>Sources</a>
+      </nav>
+      <button type="button" data-theme-toggle>Light</button>
+    </header>
+
+    <main>{% block content %}{% endblock %}</main>
+
+    <footer class="footer">
+      <p>
+        Built on public federal data. Scores are computed from indicators that are
+        separately measured and often confounded — this does not show that technology
+        causes educational outcomes. <a href="{{ url_for('methodology') }}">How the index works</a>.
+      </p>
+    </footer>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/vanta/0.5.24/vanta.globe.min.js"></script>
+  <script src="{{ url_for('static', filename='js/vantaConfig.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>

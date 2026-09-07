@@ -1,0 +1,29 @@
+{# The control that makes the argument: hand the reader the weights. #}
+<form class="panel" method="get" data-weights>
+  <p class="kicker">Build your own index</p>
+  <div class="controls">
+    {% for indicator in indicators %}
+      <div class="control">
+        <label for="w_{{ indicator.key }}">
+          {{ indicator.label }}
+          <output for="w_{{ indicator.key }}">{{ '%.2f'|format(weights[indicator.key]) }}</output>
+        </label>
+        <input type="range" id="w_{{ indicator.key }}" name="w_{{ indicator.key }}"
+               min="0" max="1" step="0.05" value="{{ weights[indicator.key] }}">
+      </div>
+    {% endfor %}
+  </div>
+
+  <div class="row">
+    <label for="method" class="small">Normalisation</label>
+    <select name="method" id="method">
+      <option value="minmax" {% if method == 'minmax' %}selected{% endif %}>Min-max (best = 100)</option>
+      <option value="zscore" {% if method == 'zscore' %}selected{% endif %}>Z-score (keeps the spread)</option>
+    </select>
+    {% if a_code %}<input type="hidden" name="a" value="{{ a_code }}">{% endif %}
+    {% if b_code %}<input type="hidden" name="b" value="{{ b_code }}">{% endif %}
+    <button class="button--primary" type="submit">Re-rank</button>
+    <a class="button" href="{{ request.path }}">Reset</a>
+  </div>
+  <p class="small">The URL carries your weights, so a ranking you build is a link you can send.</p>
+</form>
