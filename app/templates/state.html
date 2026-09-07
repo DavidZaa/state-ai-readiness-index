@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% block title %}{{ names.get(code, code) }} — State AI Readiness Index{% endblock %}
+{% block content %}
+
+{% if not row %}
+  <section class="frontispiece" style="grid-template-columns:1fr">
+    <div>
+      <h1>No state with the code “{{ code }}”</h1>
+      <p class="lede">The index covers the 50 states. Pick one below.</p>
+      <form class="row" style="margin-top:1.5rem" data-state-lookup>
+        <select name="code">
+          {% for c in states %}<option value="{{ c }}">{{ names[c] }}</option>{% endfor %}
+        </select>
+        <button class="button--primary" type="submit">View state</button>
+      </form>
+    </div>
+  </section>
+{% else %}
+  <section class="frontispiece">
+    <div>
+      <p class="kicker">State profile</p>
+      <h1>{{ names[code] }}</h1>
+      <p class="lede">
+        Ranked <strong>{{ row.rank|ordinal }}</strong> of {{ total }} on the weights
+        currently set{% if swing %}, but it lands anywhere from
+        {{ swing.best|ordinal }} to {{ swing.worst|ordinal }} across the alternative
+        indexes tested{% endif %}.
+      </p>
+      <p class="row" style="margin-top:1.5rem">
+        <a class="button" href="{{ url_for('explore') }}">Change the weights</a>
+        <a class="button" href="{{ url_for('compare') }}?a={{ code }}">Compare with another state</a>
+      </p>
+    </div>
+
+    <div class="finding">
+      <p class="kicker" style="margin-bottom:0.5rem">Index score</p>
+      <p class="finding__number">{{ '%.1f'|format(row.score) }}</p>
+      <p class="finding__unit">rank {{ row.rank }} of {{ total }}</p>
+      {% if swing %}
+        <p>
+          Under other defensible recipes this state ranges from
+          {{ swing.best|ordinal }} to {{ swing.worst|ordinal }} — a swing of
+          {{ swing.swing }} places.
+        </p>
+      {% endif %}
+      {% if row.coverage < 1 %}
+        <p class="small missing" style="margin:0">
+          Scored on {{ row.coverage|pct }} of the indicators; the rest are missing for
+          this state and nothing has been filled in.
+        </p>
+      {% endif %}
+    </div>
+  </section>
+
+  <section style="margin-top:2.5rem">
+    <h2 style="font-size:1.5rem;margin:0 0 1rem">What produced that score</h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Indicator</th><th class="num">Raw value</th><th class="num">Normalised</th><th class="num">Weight</th><th>Source</th></tr>
+        </thead>
+        <tbody>
+          {% for indicator in indicators %}
+            <tr>
+              <td>{{ indicator.label }}</td>
+              <td class="num">
+                {% if indicator.key in row.raw %}{{ '%.1f'|format(row.raw[indicator.key]) }}
+                {% else %}<span class="missing">no data</span>{% endif %}
+              </td>
+              <td class="num">
+                {% if indicator.key in row.components %}{{ '%.1f'|format(row.components[indicator.key]) }}
+                {% else %}<span class="missing">—</span>{% endif %}
+              </td>
+              <td class="num small">{{ '%.2f'|format(weights[indicator.key]) }}</td>
+              <td class="small"><a href="{{ indicator.source_url }}" rel="noreferrer">{{ indicator.source }}</a> · {{ indicator.year }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <p class="small">
+      Raw values sit on each indicator's own scale. NAEP scale scores are not
+      percentages. <a href="{{ url_for('methodology') }}">How normalisation works</a>.
+    </p>
+  </section>
+
+  <section class="lookup">
+    <h2 style="font-size:1.25rem;margin:0 0 1rem">Look up another state</h2>
+    <form class="row" data-state-lookup>
+      <select name="code">
+        {% for c in states %}<option value="{{ c }}" {% if c == code %}selected{% endif %}>{{ names[c] }}</option>{% endfor %}
+      </select>
+      <button class="button--primary" type="submit">View state</button>
+    </form>
+  </section>
+{% endif %}
+
+{% endblock %}

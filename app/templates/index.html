@@ -96,4 +96,61 @@
   <p><a class="button" href="{{ url_for('explore') }}">See all {{ total }} states →</a></p>
 </section>
 
+<section style="margin-top:3.5rem">
+  <h2 style="font-size:1.5rem;margin:0 0 0.5rem">Do states with guidance do better?</h2>
+  <p class="small" style="max-width:64ch;margin:0 0 1.5rem">
+    Each dot is a state, placed by its average NAEP result. The rows split them by
+    whether the state has published AI guidance. If guidance went with better results
+    the rows would separate — read the overlap yourself.
+  </p>
+
+  <div class="strips">
+    {% for strip in strips %}
+      <div class="strip">
+        <div class="strip__label">
+          <span>{{ strip.label }}</span>
+          <span class="small">{{ strip.count }} state{{ "" if strip.count == 1 else "s" }}{% if strip.median %} · median {{ strip.median }}{% endif %}</span>
+        </div>
+        <div class="strip__track">
+          {% for member in strip.members %}
+            <span class="strip__dot" style="left: {{ member.x }}%">
+              <span class="sr-only">{{ member.name }}, {{ member.x }}</span>
+            </span>
+          {% endfor %}
+          {% if strip.median is not none %}
+            <span class="strip__median" style="left: {{ strip.median }}%" aria-hidden="true"></span>
+          {% endif %}
+        </div>
+      </div>
+    {% endfor %}
+    <p class="strip__scale">
+      <span></span>
+      <span><span>Lowest results</span><span>Highest results</span></span>
+    </p>
+  </div>
+
+  <p class="small" style="max-width:64ch">
+    The rows overlap almost completely, and the states with <em>no</em> guidance have the
+    higher median of the two. Whatever having published guidance indicates, it is not
+    higher test results — which is exactly why this site treats its own ranking as a
+    description and not a finding about what works.
+  </p>
+</section>
+
+<section class="lookup">
+  <h2 style="font-size:1.25rem;margin:0 0 0.35rem">Look up one state</h2>
+  <p class="small" style="margin:0 0 1rem">
+    Its rank, every indicator behind it, and how far it moves under other recipes.
+  </p>
+  <form class="row" action="" method="get" data-state-lookup>
+    <label class="sr-only" for="state-pick">State</label>
+    <select id="state-pick" name="code">
+      {% for code in names|sort %}
+        <option value="{{ code }}">{{ names[code] }}</option>
+      {% endfor %}
+    </select>
+    <button class="button--primary" type="submit">View state</button>
+  </form>
+</section>
+
 {% endblock %}

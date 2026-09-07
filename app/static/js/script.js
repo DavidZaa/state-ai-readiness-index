@@ -44,3 +44,17 @@ document.addEventListener("DOMContentLoaded", () => {
     }, 2500);
   });
 });
+
+// The state lookup posts to /state/<code>, which reads better in the address
+// bar and gives each state a page worth linking to.
+document.addEventListener("DOMContentLoaded", () => {
+  const form = document.querySelector("[data-state-lookup]");
+
+  if (!form) return;
+
+  form.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const code = form.querySelector("select").value;
+    window.location.href = `/state/${code}`;
+  });
+});

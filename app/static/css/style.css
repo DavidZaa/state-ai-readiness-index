@@ -439,3 +439,121 @@ a { color: var(--accent); }
   line-height: 1.65;
   color: var(--ink-muted);
 }
+
+/* ------------------------------------------------------------------ charts */
+
+.sr-only {
+  position: absolute;
+  width: 1px; height: 1px;
+  margin: -1px; padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* Strip plot. Three rows, one accent: the policy group is carried by position
+   and its row label, so colour has no identity job to do here. */
+.strips { margin: 1.5rem 0; }
+
+.strip {
+  display: grid;
+  grid-template-columns: 13rem 1fr;
+  gap: 1rem;
+  align-items: center;
+  padding: 0.65rem 0;
+  border-top: 1px solid var(--rule);
+}
+
+.strip__label { display: flex; flex-direction: column; font-size: 0.88rem; }
+
+.strip__track {
+  position: relative;
+  height: 30px;
+  background: linear-gradient(var(--rule), var(--rule)) center / 100% 1px no-repeat;
+}
+
+/* A 2px surface ring so overlapping dots stay countable rather than merging
+   into one blob — the overlap is the finding, so it has to stay readable. */
+.strip__dot {
+  position: absolute;
+  top: 50%;
+  width: 9px; height: 9px;
+  margin-left: -4.5px;
+  background: var(--accent);
+  border: 2px solid var(--paper);
+  border-radius: 50%;
+  opacity: 0.75;
+  transform: translateY(-50%);
+}
+
+.strip__median {
+  position: absolute;
+  top: 4px; bottom: 4px;
+  width: 2px;
+  margin-left: -1px;
+  background: var(--ink);
+}
+
+.strip__scale {
+  display: grid;
+  grid-template-columns: 13rem 1fr;
+  gap: 1rem;
+  margin: 0.4rem 0 0;
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+.strip__scale span:last-child { display: flex; justify-content: space-between; }
+
+/* Grouped bars. Two series, so a legend is required and both are direct
+   labelled with their raw value. */
+.legend { display: flex; gap: 1.5rem; margin: 0 0 1rem; font-size: 0.85rem; }
+.legend span { display: inline-flex; align-items: center; gap: 0.45rem; }
+
+.legend__swatch { width: 11px; height: 11px; border-radius: 2px; }
+
+.grouped__row {
+  display: grid;
+  grid-template-columns: 11rem 1fr;
+  gap: 1rem;
+  align-items: center;
+  padding: 0.55rem 0;
+  border-top: 1px solid var(--rule);
+  font-size: 0.85rem;
+}
+
+.grouped__bars { display: grid; gap: 2px; }
+
+.grouped__bar {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  height: 13px;
+}
+
+.grouped__bar > span {
+  height: 100%;
+  min-width: 2px;
+  border-radius: 0 3px 3px 0;
+}
+
+.grouped__bar em {
+  font-style: normal;
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-faint);
+  white-space: nowrap;
+}
+
+.lookup {
+  margin-top: 3rem;
+  padding: 1.5rem;
+  background: var(--paper-raised);
+  border: 1px solid var(--rule);
+}
+
+@media (max-width: 40rem) {
+  .strip, .strip__scale, .grouped__row { grid-template-columns: 1fr; }
+}

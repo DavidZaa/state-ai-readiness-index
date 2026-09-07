@@ -22,6 +22,7 @@ from app.data.loader import (
     load_indicators,
     parse_weights,
 )
+from app.charts import SERIES_A, SERIES_B, comparison_series, policy_strips
 from app.index_model import rank_instability, score_states
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -69,6 +70,7 @@ def create_app(root: Path = ROOT) -> Flask:
             most_unstable=most_unstable,
             spread=spread,
             swings=swings,
+            strips=policy_strips(indicators, STATE_NAMES),
         )
 
     @app.route("/explore")
@@ -109,7 +111,31 @@ def create_app(root: Path = ROOT) -> Flask:
             method=method,
             names=STATE_NAMES,
             swings=swings,
+            series=comparison_series(indicators, lookup.get(a), lookup.get(b)),
         )
+
+    # A state's own page. BrainBow let you look up one country rather than
+    # read the whole table, and the same is true here: most people arrive
+    # wanting one state, not fifty.
+    @app.route("/state/<code>")
+    def state_profile(code):
+        code = code.upper()
+        weights, method, rows = context(request.args)
+        lookup = {row["state"]: row for row in rows}
+        row = lookup.get(code)
+        swings = rank_instability(indicators, weights, method=method) if row else {}
+
+        return render_template(
+            "state.html",
+            row=row,
+            code=code,
+            names=STATE_NAMES,
+            states=sorted(lookup),
+            indicators=indicators,
+            weights=weights,
+            swing=swings.get(code),
+            total=len(rows),
+        ), (200 if row else 404)
 
     # Every serious data tool lets you take the data away and check it. These
     # export exactly what the reader is looking at — the weights and the
@@ -230,6 +256,8 @@ def create_app(root: Path = ROOT) -> Flask:
         return f"{number}{suffix}"
 
     app.jinja_env.globals["by_key"] = by_key
+    app.jinja_env.globals["series_a"] = SERIES_A
+    app.jinja_env.globals["series_b"] = SERIES_B
     app.jinja_env.globals["data_vintage"] = {
         "naep": "2024",
         "policy": policy_payload.get("source_last_updated", "2026"),

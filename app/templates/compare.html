@@ -75,6 +75,37 @@
     </table>
   </div>
 
+  <section style="margin-top:2rem">
+    <h2 style="font-size:1.25rem;margin:0 0 0.35rem">Indicator by indicator</h2>
+    <p class="small" style="margin:0 0 1rem">
+      Bars show each state's normalised position on that indicator, because the raw
+      units cannot share an axis. The raw figure is printed beside each bar.
+    </p>
+
+    <p class="legend">
+      <span><span class="legend__swatch" style="background: {{ series_a }}"></span>{{ names[a.state] }}</span>
+      <span><span class="legend__swatch" style="background: {{ series_b }}"></span>{{ names[b.state] }}</span>
+    </p>
+
+    <div class="grouped">
+      {% for item in series %}
+        <div class="grouped__row">
+          <span class="grouped__label">{{ item.label }}</span>
+          <span class="grouped__bars">
+            <span class="grouped__bar">
+              <span style="width: {{ item.a.scaled }}%; background: {{ series_a }}"></span>
+              <em>{% if item.a.raw is not none %}{{ '%.1f'|format(item.a.raw) }}{% else %}no data{% endif %}</em>
+            </span>
+            <span class="grouped__bar">
+              <span style="width: {{ item.b.scaled }}%; background: {{ series_b }}"></span>
+              <em>{% if item.b.raw is not none %}{{ '%.1f'|format(item.b.raw) }}{% else %}no data{% endif %}</em>
+            </span>
+          </span>
+        </div>
+      {% endfor %}
+    </div>
+  </section>
+
   <p class="small" style="margin-top:1rem">
     Raw values are on each indicator's own scale — NAEP scale scores are not
     percentages, and the policy figure is an ordinal flattened to 0–100.
