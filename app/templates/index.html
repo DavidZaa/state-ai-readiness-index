@@ -1,71 +1,99 @@
 {% extends "base.html" %}
 {% block content %}
 
-<section class="hero">
-  <p class="kicker">50 states · NAEP 2024 · state AI guidance to Aug 2026</p>
-  <h1>An index is a choice, not a measurement.</h1>
-  <p class="lede">
-    Reports rank states on AI readiness every few months, and the rankings move
-    attention and money. Nearly all of them combine indicators using weights
-    somebody picked, then present the result as though it were discovered.
-    This one hands you the weights.
-  </p>
-  <p class="row" style="margin-top:2rem">
-    <a class="button button--primary" href="{{ url_for('explore') }}">Build your own ranking</a>
-    <a class="button" href="{{ url_for('methodology') }}">How it works</a>
-  </p>
+<section class="frontispiece">
+  <div>
+    <p class="kicker">50 states · NAEP 2024 · state AI guidance to Aug 2026</p>
+    <h1>An index is a choice, not a measurement.</h1>
+    <p class="lede">
+      Reports rank states on AI readiness every few months, and the rankings move
+      attention and money. Nearly all of them combine indicators using weights
+      somebody picked, then present the result as though it were discovered.
+      This one hands you the weights, and reports what happens when they move.
+    </p>
+    <p class="row" style="margin-top:1.75rem">
+      <a class="button button--primary" href="{{ url_for('explore') }}">Build your own ranking</a>
+      <a class="button" href="{{ url_for('methodology') }}">How it works</a>
+    </p>
+  </div>
+
+  <div class="finding">
+    <p class="kicker" style="margin-bottom:0.5rem">What this index found about itself</p>
+    <p class="finding__number">{{ median_swing|round|int }}</p>
+    <p class="finding__unit">places, median swing</p>
+    <p>
+      The median state moves {{ median_swing|round|int }} positions out of {{ total }} when the
+      index is rebuilt with a different — equally defensible — set of weights or a
+      different normalisation. Same states, same data, same year.
+    </p>
+    <p class="small" style="margin:0">
+      A ranking that holds still tells you about the states. One that reshuffles tells
+      you about whoever built it.
+    </p>
+  </div>
 </section>
 
-<section class="panel panel--finding">
-  <p class="kicker">What this index found about itself</p>
-  <p class="finding__number">{{ median_swing|round|int }} places</p>
-  <p class="prose">
-    The median state moves {{ median_swing|round|int }} positions out of {{ total }} when the
-    index is rebuilt using a different — equally defensible — set of weights or a
-    different normalisation. Same states, same data, same year.
+<section style="margin-top:3rem">
+  <h2 style="font-size:1.5rem;margin:0 0 0.5rem">Where each state can land</h2>
+  <p class="small" style="max-width:60ch;margin:0 0 1.5rem">
+    Each line runs from the best rank a state reaches under any index we test to the
+    worst. The dot is where it sits on the default weights. The longer the line, the
+    less its position means.
   </p>
-  <ul class="small">
-    {% for code, swing in most_unstable %}
+
+  <ul class="ranges">
+    {% for code, swing in spread %}
       <li>
-        <strong>{{ names[code] }}</strong> sits {{ swing.baseline|ordinal }} here, but ranks as high as
-        {{ swing.best }} and as low as {{ swing.worst }} depending on the choices made.
+        <span class="ranges__name">{{ names[code] }}</span>
+        <span class="range-track">
+          {% set left = ((swing.best - 1) / (total - 1) * 100) %}
+          {% set width = ((swing.worst - swing.best) / (total - 1) * 100) %}
+          <span class="range-span" style="left: {{ left }}%; width: {{ width }}%"></span>
+          <span class="range-dot" style="left: {{ (swing.baseline - 1) / (total - 1) * 100 }}%"
+                title="default rank {{ swing.baseline }}"></span>
+        </span>
+        <span class="num small">±{{ swing.swing }}</span>
       </li>
     {% endfor %}
   </ul>
-  <p class="small">
-    That spread is the point. A ranking that holds still tells you about the states;
-    one that reshuffles tells you about whoever built it.
+  <p class="range-scale">
+    <span></span>
+    <span class="range-scale__ends"><span>Rank 1</span><span>Rank {{ total }}</span></span>
   </p>
 </section>
 
-<section>
-  <h2>Top {{ rows|length }} on the default weights</h2>
-  <p class="small">
-    Defaults are 30% state AI guidance, 40% grade&nbsp;8 results, 30% grade&nbsp;4 results.
-    They are a starting point, not a recommendation.
+<section style="margin-top:3rem">
+  <h2 style="font-size:1.5rem;margin:0 0 0.5rem">Top {{ rows|length }} on the default weights</h2>
+  <p class="small" style="margin:0">
+    30% state AI guidance, 40% grade&nbsp;8 results, 30% grade&nbsp;4 results. A starting
+    point, not a recommendation.
   </p>
 
   <div class="table-wrap">
     <table>
       <thead>
-        <tr><th>#</th><th>State</th><th>Score</th><th style="width:35%">&nbsp;</th></tr>
+        <tr><th>#</th><th>State</th><th class="num">Score</th><th class="num">Swing</th><th>Can rank</th></tr>
       </thead>
       <tbody>
         {% for row in rows %}
+          {% set swing = swings.get(row.state) %}
           <tr>
             <td class="rank">{{ row.rank }}</td>
             <td class="state-name">{{ names[row.state] }}</td>
             <td class="num">{{ '%.1f'|format(row.score) }}</td>
-            <td><div class="bar"><span style="width: {{ row.score }}%"></span></div></td>
+            <td class="num">
+              {% if swing %}
+                <span class="swing" data-level="{{ 'low' if swing.swing < 10 else ('mid' if swing.swing < 25 else 'high') }}">±{{ swing.swing }}</span>
+              {% endif %}
+            </td>
+            <td class="small">{% if swing %}#{{ swing.best }} – #{{ swing.worst }}{% endif %}</td>
           </tr>
         {% endfor %}
       </tbody>
     </table>
   </div>
 
-  <p style="margin-top:1.5rem">
-    <a class="button" href="{{ url_for('explore') }}">See all {{ total }} states →</a>
-  </p>
+  <p><a class="button" href="{{ url_for('explore') }}">See all {{ total }} states →</a></p>
 </section>
 
 {% endblock %}

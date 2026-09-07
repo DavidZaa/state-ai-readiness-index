@@ -49,6 +49,9 @@ def create_app(root: Path = ROOT) -> Flask:
         swings = rank_instability(indicators, weights, method=method)
         median_swing = statistics.median(s["swing"] for s in swings.values()) if swings else 0
         most_unstable = sorted(swings.items(), key=lambda kv: -kv[1]["swing"])[:3]
+        # The range chart shows the widest travellers first, because the
+        # argument is about how far a position can move.
+        spread = sorted(swings.items(), key=lambda kv: -kv[1]["swing"])[:12]
 
         return render_template(
             "index.html",
@@ -60,6 +63,8 @@ def create_app(root: Path = ROOT) -> Flask:
             names=STATE_NAMES,
             median_swing=median_swing,
             most_unstable=most_unstable,
+            spread=spread,
+            swings=swings,
         )
 
     @app.route("/explore")
