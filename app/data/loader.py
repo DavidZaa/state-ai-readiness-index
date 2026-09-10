@@ -11,6 +11,7 @@ import json
 from pathlib import Path
 
 from app.data.naep import DISTRICTS, LATEST_YEAR, STATES, fetch_all
+from app.data import spending
 from app.index_model import Indicator
 
 STATE_NAMES = {
@@ -106,15 +107,34 @@ def load_indicators(root: Path, *, use_cache: bool = True) -> tuple[list[Indicat
     policy, payload = load_policy(root)
     indicators.append(policy)
 
+    # Money, included deliberately as the confounder rather than despite it.
+    # Every other measure here tends to move with spending, which is the
+    # objection this site makes to its own ranking — so putting it in the index
+    # makes that visible instead of leaving it as an assertion in the footer.
+    per_pupil = spending.load(root)
+
+    if per_pupil:
+        indicators.append(
+            Indicator(
+                key="spending",
+                label="Spending per pupil",
+                source=spending.SOURCE,
+                source_url=spending.SOURCE_URL,
+                year=str(spending.FINANCE_YEAR),
+                values=per_pupil,
+            )
+        )
+
     return indicators, payload
 
 
 DEFAULT_WEIGHTS = {
     "mathematics_grade4": 0.15,
-    "mathematics_grade8": 0.20,
+    "mathematics_grade8": 0.15,
     "reading_grade4": 0.15,
-    "reading_grade8": 0.20,
-    "ai_policy": 0.30,
+    "reading_grade8": 0.15,
+    "ai_policy": 0.25,
+    "spending": 0.15,
 }
 
 

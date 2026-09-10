@@ -67,8 +67,52 @@ def main() -> int:
 
     ok = write(STATE_OUT, states, minimum=50, label="states")
     ok = write(DISTRICT_OUT, districts, minimum=20, label="districts") and ok
+    ok = write_spending() and ok
 
     return 0 if ok else 1
+
+
+def write_spending() -> bool:
+    """Per-pupil spending, refreshed alongside the test scores.
+
+    Kept in the same script so a data refresh updates everything at once —
+    a snapshot where one measure is two years newer than another is worse
+    than one that is uniformly old.
+    """
+    from app.data.spending import FINANCE_YEAR, SOURCE, SOURCE_URL, fetch_per_pupil
+
+    values = fetch_per_pupil()
+
+    if len(values) < 45:
+        print(f"Refusing to write spending for only {len(values)} states", file=sys.stderr)
+        return False
+
+    path = ROOT / "data" / "processed" / "spending_per_pupil.json"
+    path.write_text(
+        json.dumps(
+            {
+                "indicator": "Per-pupil school spending",
+                "source": SOURCE,
+                "source_url": SOURCE_URL,
+                "year": FINANCE_YEAR,
+                "captured": date.today().isoformat(),
+                "note": (
+                    "Total district expenditure divided by total enrolment, both for the "
+                    "same year. Finance data lags: 2020 is the newest available, four "
+                    "years behind the NAEP figures."
+                ),
+                "values": values,
+            },
+            indent=2,
+            sort_keys=True,
+        )
+        + "\n"
+    )
+
+    print(f"Wrote {path.relative_to(ROOT)}")
+    print(f"  spending_per_pupil       {len(values)} states")
+
+    return True
 
 
 if __name__ == "__main__":
