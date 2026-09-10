@@ -43,15 +43,19 @@ class TestPagesRender:
         assert response.status_code == 200
         assert b"<html" in response.data
 
-    @pytest.mark.parametrize("path", PAGES)
-    def test_page_carries_the_caveat(self, path, client):
-        """The disclaimer is in the shared footer, so it must reach every page.
+    def test_the_causation_disclaimer_still_exists_somewhere(self, client):
+        """It used to sit in the footer of every page and now lives on Method.
 
-        This project's whole position is that it does not show causation. A
-        page that lost the footer would present a ranking with nothing
-        qualifying it.
+        The footer version was removed deliberately — it repeated on every
+        screen and, once spending was added and the correlation measured, it
+        was overstating the case. But the claim it guarded still matters, so
+        this pins it to the page that now carries it. If that page ever loses
+        it, the site is asserting a ranking with nothing qualifying it.
         """
-        assert b"does not show that technology causes" in client.get(path).data
+        page = client.get("/methodology").data
+
+        assert b"does not show that technology" in page
+        assert b"correlate at" in page, "the measured correlation should be stated too"
 
     @pytest.mark.parametrize("path", PAGES)
     def test_page_states_its_data_vintage(self, path, client):

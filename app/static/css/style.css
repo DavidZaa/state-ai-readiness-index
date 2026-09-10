@@ -750,3 +750,29 @@ a { color: var(--accent); }
 
 .tour__skip { margin-left: auto; }
 .tour__back:hover, .tour__skip:hover { color: var(--ink); }
+
+/* ---------------------------------------------------------------- primer */
+
+/* Four short answers to the questions a reader arrives with. Two columns so
+   they read as a set of definitions rather than a wall of prose. */
+.primer { padding-top: 2rem; border-top: 1px solid var(--rule); }
+
+.primer__grid { display: grid; gap: 1.75rem 3rem; }
+
+@media (min-width: 52rem) {
+  .primer__grid { grid-template-columns: 1fr 1fr; }
+}
+
+.primer__grid h3 {
+  margin: 0 0 0.4rem;
+  font-family: var(--serif);
+  font-size: 1.02rem;
+  font-weight: 700;
+}
+
+.primer__grid p {
+  max-width: 46ch;
+  margin: 0;
+  font-size: 0.92rem;
+  color: var(--ink-muted);
+}

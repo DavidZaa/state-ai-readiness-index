@@ -325,10 +325,23 @@ def create_app(root: Path = ROOT) -> Flask:
         accounted = {row["state"] for row in rows} | {row["state"] for row in unranked}
         absent = [code for code in DISTRICT_NAMES if code not in accounted]
 
+        # The same two pictures the states page gets: how far each district can
+        # travel, and whether inherited AI guidance goes with better results.
+        spread = sorted(
+            (
+                (code, swing)
+                for code, swing in district_distributions.items()
+                if code in {row["state"] for row in rows}
+            ),
+            key=lambda kv: -(kv[1]["p90"] - kv[1]["p10"]),
+        )[:12]
+
         return render_template(
             "cities.html",
             rows=rows,
             unranked=unranked,
+            spread=spread,
+            strips=policy_strips(district_indicators, DISTRICT_NAMES),
             indicators=district_indicators,
             weights=weights,
             method=method,

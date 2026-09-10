@@ -75,6 +75,71 @@
   </table>
 </div>
 
+<section style="margin-top:3rem">
+  <h2 style="font-size:1.5rem;margin:0 0 0.5rem">How far each district can move</h2>
+  <p class="small" style="max-width:64ch;margin:0 0 1.5rem">
+    Each line covers where a district usually landed across a thousand rankings; the dot
+    is its middle position. Note the lines are shorter than on the states page — with
+    {{ total }} districts instead of 50, there is simply less room to move.
+  </p>
+
+  <ul class="ranges">
+    {% for code, swing in spread %}
+      <li>
+        <span class="ranges__name">{{ names[code] }}</span>
+        <span class="range-track">
+          {% set left = ((swing.p10 - 1) / (total - 1) * 100) %}
+          {% set width = ((swing.p90 - swing.p10) / (total - 1) * 100) %}
+          <span class="range-span" style="left: {{ left }}%; width: {{ width }}%"
+                title="usually #{{ swing.p10 }} to #{{ swing.p90 }}"></span>
+          <span class="range-dot" style="left: {{ (swing.median - 1) / (total - 1) * 100 }}%"
+                title="median rank {{ swing.median }}"></span>
+        </span>
+        <span class="num small">±{{ swing.p90 - swing.p10 }}</span>
+      </li>
+    {% endfor %}
+  </ul>
+  <p class="range-scale">
+    <span></span>
+    <span class="range-scale__ends"><span>Rank 1</span><span>Rank {{ total }}</span></span>
+  </p>
+</section>
+
+<section style="margin-top:3rem">
+  <h2 style="font-size:1.5rem;margin:0 0 0.5rem">Does the state&apos;s AI guidance show up here?</h2>
+  <p class="small" style="max-width:64ch;margin:0 0 1.5rem">
+    Every dot is one district, placed by its average test score. The rows split them by
+    whether the state they sit in has published AI rules. Remember this is the state&apos;s
+    status, not the district&apos;s — so if it separated the rows cleanly, that would be
+    surprising rather than reassuring.
+  </p>
+
+  <div class="strips">
+    {% for strip in strips %}
+      <div class="strip">
+        <div class="strip__label">
+          <span>{{ strip.label }}</span>
+          <span class="small">{{ strip.count }} district{{ "" if strip.count == 1 else "s" }}{% if strip.median %} · median {{ strip.median }}{% endif %}</span>
+        </div>
+        <div class="strip__track">
+          {% for member in strip.members %}
+            <span class="strip__dot" style="left: {{ member.x }}%">
+              <span class="sr-only">{{ member.name }}, {{ member.x }}</span>
+            </span>
+          {% endfor %}
+          {% if strip.median is not none %}
+            <span class="strip__median" style="left: {{ strip.median }}%" aria-hidden="true"></span>
+          {% endif %}
+        </div>
+      </div>
+    {% endfor %}
+    <p class="strip__scale">
+      <span></span>
+      <span><span>Lowest scores</span><span>Highest scores</span></span>
+    </p>
+  </div>
+</section>
+
 {% if unranked or absent %}
   <section class="panel">
     <h2 style="font-size:1.15rem;margin:0 0 0.5rem">Not ranked</h2>

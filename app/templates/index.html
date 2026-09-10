@@ -30,12 +30,13 @@
 <section class="frontispiece">
   <div>
     <p class="kicker">50 states · NAEP 2024 · state AI guidance to Aug 2026</p>
-    <h1>An index is a choice, not a measurement.</h1>
+    <h1>Change how you score it, and the winners change.</h1>
     <p class="lede">
-      Rankings like this one help decide where attention and money go. But every
-      ranking depends on two choices: which things to measure, and how much each
-      one counts. Someone picks those. Change them and the ranking changes.
-      Most reports don&apos;t show you that. This one lets you do it yourself.
+      This page ranks all 50 states on how ready their schools are for AI. So do a
+      lot of reports, and those rankings get quoted in news stories and funding
+      arguments. But a ranking is just a few numbers added together, and somebody
+      decided how much each one counts. Here you decide instead — and you can see
+      how much the answer moves when you do.
     </p>
     <p class="row" style="margin-top:1.75rem">
       <a class="button button--primary" href="{{ url_for('explore') }}">Build your own ranking</a>
@@ -49,14 +50,59 @@
     <p class="finding__number">{{ median_p80|round|int }}</p>
     <p class="finding__unit">places the typical state moves</p>
     <p>
-      We ranked all {{ total }} states a thousand times, changing how much each measure
-      counts each time. The typical state moved {{ median_p80|round|int }} places, and
-      {{ median_full|round|int }} across its full range.
+      We built this ranking a thousand times over, each time changing how much the six
+      measures count. The average state landed {{ median_p80|round|int }} places apart
+      between its better and worse runs, and {{ median_full|round|int }} apart between
+      its best and worst.
     </p>
     <p class="small" style="margin:0">
-      Nothing about the states changed. Only the recipe did. A rank that moves that
-      much is not really a fact about the state.
+      We never changed a single number about the states — only our own settings. If a
+      state can move that far on that alone, its rank is telling you more about us than
+      about the state.
     </p>
+  </div>
+</section>
+
+<section class="primer" style="margin-top:3rem">
+  <h2 style="font-size:1.5rem;margin:0 0 1.25rem">What is actually being measured</h2>
+
+  <div class="primer__grid">
+    <div>
+      <h3>What a ranking like this is</h3>
+      <p>
+        Take a few numbers about each state, put them on a common scale, decide how much
+        each one counts, add them up, and sort. That is all any of these rankings are,
+        including this one. The result looks like a measurement but it is arithmetic
+        applied to a set of decisions.
+      </p>
+    </div>
+    <div>
+      <h3>What &ldquo;AI guidance&rdquo; means</h3>
+      <p>
+        Some state education departments have published official advice for schools on
+        using AI — what teachers may use it for, how to handle cheating, what happens to
+        student data. Thirty-five states have. Fifteen have not. It says a state has
+        engaged with the question, not that any classroom changed.
+      </p>
+    </div>
+    <div>
+      <h3>Why these six numbers</h3>
+      <p>
+        Four are test scores: maths and reading, at grades 4 and 8, from NAEP — the one
+        exam given identically in every state. One is whether the state published AI
+        guidance. One is what the state spends per pupil. Between them they cover results,
+        policy, and money.
+      </p>
+    </div>
+    <div>
+      <h3>Why compare states at all</h3>
+      <p>
+        Because these comparisons get used. They are quoted in news coverage, cited when
+        budgets are argued over, and pointed at when a state wants to claim it is ahead.
+        If a state&apos;s position shifts by fourteen places depending on choices nobody
+        published, those arguments are standing on very little.
+      </p>
+    </div>
   </div>
 </section>
 
@@ -93,8 +139,9 @@
 <section style="margin-top:3rem">
   <h2 style="font-size:1.5rem;margin:0 0 0.5rem">Top {{ rows|length }} on the default weights</h2>
   <p class="small" style="margin:0">
-    Using 30% AI guidance, 40% grade&nbsp;8 scores, 30% grade&nbsp;4 scores. These are
-    just a starting point — change them on the next page.
+    We set test scores at 60%, AI guidance at 25% and spending at 15%. Nothing says
+    those are the right numbers. Pick your own on the next page and watch this list
+    reorder.
   </p>
 
   <div class="table-wrap">
@@ -127,9 +174,10 @@
 <section style="margin-top:3.5rem">
   <h2 style="font-size:1.5rem;margin:0 0 0.5rem">Do states with guidance do better?</h2>
   <p class="small" style="max-width:64ch;margin:0 0 1.5rem">
-    Each dot is a state, placed by its average test score. The rows group states by
-    whether they have published AI guidance for schools. If guidance came with better
-    scores, the rows would sit apart.
+    Every dot is one state. Further right means higher test scores. The rows split the
+    states by whether their education department has published AI rules for schools. If
+    having rules went with better scores, the top row would sit to the right of the
+    bottom one.
   </p>
 
   <div class="strips">
@@ -158,9 +206,9 @@
   </div>
 
   <p class="small" style="max-width:64ch">
-    The rows sit almost on top of each other, and states with <em>no</em> guidance have the
-    slightly higher middle score. So publishing guidance does not come with better
-    results. That is why this site does not claim its ranking shows what works.
+    It doesn&apos;t. The rows sit on top of each other, and the states with <em>no</em> rules
+    actually score a little higher. So we can&apos;t tell you that publishing AI rules makes
+    schools better — and we don&apos;t.
   </p>
 </section>
 
