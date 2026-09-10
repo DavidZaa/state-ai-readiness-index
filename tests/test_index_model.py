@@ -251,3 +251,47 @@ class TestDistributions:
         assert [event[0] for event in events[:-1]] == ["progress"] * (len(events) - 1)
         assert events[-1][0] == "result"
         assert events[-1][1]["median"] == rank_distribution(indicators, "TX", trials=40)["median"]
+
+
+class TestCoverageFloor:
+    def _thin(self):
+        # A jurisdiction with only the weakest indicator, and one with everything.
+        # Values chosen so nothing ties: scaled, CA lands 25, TX 50, and ZZ
+        # 100 on the policy indicator alone.
+        return [
+            indicator("achievement", {"CA": 40, "TX": 90}),
+            indicator("policy", {"CA": 60, "TX": 20, "ZZ": 100}),
+        ]
+
+    # The bug this exists for: ZZ has no achievement data at all, so scoring it
+    # on policy alone put it top of the table.
+    def test_a_thin_jurisdiction_tops_the_table_without_a_floor(self):
+        rows = score_states(self._thin(), {"achievement": 0.5, "policy": 0.5})
+
+        assert rows[0]["state"] == "ZZ"
+        assert rows[0]["coverage"] == 0.5
+
+    def test_the_floor_removes_it(self):
+        rows = score_states(
+            self._thin(), {"achievement": 0.5, "policy": 0.5}, min_coverage=0.6
+        )
+
+        assert [row["state"] for row in rows] == ["TX", "CA"]
+        assert [row["rank"] for row in rows] == [1, 2]
+
+    def test_the_excluded_are_reported_rather_than_dropped(self):
+        from app.index_model import below_coverage
+
+        left_out = below_coverage(
+            self._thin(), {"achievement": 0.5, "policy": 0.5}, min_coverage=0.6
+        )
+
+        assert [row["state"] for row in left_out] == ["ZZ"]
+        assert left_out[0]["coverage"] == 0.5
+
+    def test_a_zero_floor_changes_nothing(self):
+        weights = {"achievement": 0.5, "policy": 0.5}
+
+        assert score_states(self._thin(), weights) == score_states(
+            self._thin(), weights, min_coverage=0.0
+        )

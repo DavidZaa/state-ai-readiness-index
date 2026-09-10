@@ -95,6 +95,7 @@ def score_states(
     weights: dict[str, float],
     *,
     method: str = "minmax",
+    min_coverage: float = 0.0,
 ) -> list[dict]:
     """Scores and ranks the states.
 
@@ -149,12 +150,42 @@ def score_states(
             }
         )
 
-    rows.sort(key=lambda row: (-row["score"], row["state"]))
+    # Refusing to impute is not enough on its own.
+    #
+    # A jurisdiction scored on one weak indicator still gets a number, and that
+    # number still sorts. Among the urban districts this put Fresno first on a
+    # policy status inherited from its state, with no test data behind it at
+    # all — a top rank resting on 30% of the evidence, which is precisely the
+    # move this project exists to criticise. Below the floor a jurisdiction is
+    # left out of the ranking and reported as unranked instead.
+    ranked = [row for row in rows if row["coverage"] >= min_coverage]
 
-    for position, row in enumerate(rows, start=1):
+    ranked.sort(key=lambda row: (-row["score"], row["state"]))
+
+    for position, row in enumerate(ranked, start=1):
         row["rank"] = position
 
-    return rows
+    return ranked
+
+
+def below_coverage(
+    indicators: list[Indicator],
+    weights: dict[str, float],
+    *,
+    method: str = "minmax",
+    min_coverage: float = 0.0,
+) -> list[dict]:
+    """The jurisdictions left out of the ranking, so they can be shown."""
+    everything = {row["state"]: row for row in score_states(indicators, weights, method=method)}
+    kept = {
+        row["state"]
+        for row in score_states(indicators, weights, method=method, min_coverage=min_coverage)
+    }
+
+    return sorted(
+        (row for state, row in everything.items() if state not in kept),
+        key=lambda row: row["state"],
+    )
 
 
 def rank_map(rows: list[dict]) -> dict[str, int]:

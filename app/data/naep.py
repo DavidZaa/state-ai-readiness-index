@@ -41,8 +41,30 @@ STATES = [
 LATEST_YEAR = 2024
 
 
-def cache_path(root: Path, subject: str, grade: int, year: int) -> Path:
-    return root / "data" / "raw" / f"naep_{subject}_g{grade}_{year}.json"
+def usable(row: dict) -> bool:
+    """Whether a NAEP row carries a real score.
+
+    The service does not omit unavailable figures — it returns them with a
+    sentinel value of 999 alongside `isStatDisplayable: 0` and a non-zero
+    `errorFlag`. Two of the urban districts come back that way for 2024. A
+    reader that only checks the value is a number will treat 999 as a score,
+    rank that jurisdiction first, and never show any sign of it. So the flags
+    are what decide, and the value is only trusted once they agree.
+    """
+    if row.get("isStatDisplayable") != 1 or row.get("errorFlag"):
+        return False
+
+    value = row.get("value")
+
+    # 999 is the sentinel. Even flagged as displayable it is not a NAEP scale
+    # score — the scales top out far below it.
+    return isinstance(value, (int, float)) and 0 < float(value) < 500
+
+
+def cache_path(root: Path, subject: str, grade: int, year: int, kind: str = "state") -> Path:
+    suffix = "" if kind == "state" else f"_{kind}"
+
+    return root / "data" / "raw" / f"naep_{subject}_g{grade}_{year}{suffix}.json"
 
 
 def fetch_subject(
@@ -53,6 +75,8 @@ def fetch_subject(
     root: Path,
     use_cache: bool = True,
     session: requests.Session | None = None,
+    jurisdictions: list[str] | None = None,
+    kind: str = "state",
 ) -> dict[str, float]:
     """Returns {state code: mean scale score} for one subject and grade.
 
@@ -63,7 +87,8 @@ def fetch_subject(
     if subject not in SUBSCALES:
         raise ValueError(f"Unknown subject {subject!r}; expected one of {sorted(SUBSCALES)}")
 
-    path = cache_path(root, subject, grade, year)
+    jurisdictions = jurisdictions or STATES
+    path = cache_path(root, subject, grade, year, kind)
 
     if use_cache and path.exists():
         return json.loads(path.read_text())
@@ -74,7 +99,7 @@ def fetch_subject(
         "grade": grade,
         "subscale": SUBSCALES[subject],
         "variable": "TOTAL",
-        "jurisdiction": ",".join(STATES),
+        "jurisdiction": ",".join(jurisdictions),
         "stattype": "MN:MN",
         "Year": year,
     }
@@ -90,14 +115,12 @@ def fetch_subject(
     scores: dict[str, float] = {}
 
     for row in payload.get("result", []):
-        state = row.get("jurisdiction")
-        value = row.get("value")
+        code = row.get("jurisdiction")
 
-        # A state can be absent or flagged rather than scored. Recording it as
-        # missing is the honest outcome; substituting a number here would put
-        # an invented figure into the index with no way to tell later.
-        if state in STATES and isinstance(value, (int, float)):
-            scores[state] = round(float(value), 2)
+        if code not in jurisdictions or not usable(row):
+            continue
+
+        scores[code] = round(float(row["value"]), 2)
 
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(scores, indent=2, sort_keys=True))
@@ -111,6 +134,8 @@ def fetch_all(
     year: int = LATEST_YEAR,
     use_cache: bool = True,
     pause: float = 1.0,
+    jurisdictions: list[str] | None = None,
+    kind: str = "state",
 ) -> dict[str, dict[str, float]]:
     """Fetches the four series the index uses, keyed 'subject_gradeN'."""
     series: dict[str, dict[str, float]] = {}
@@ -118,10 +143,11 @@ def fetch_all(
     for subject in ("mathematics", "reading"):
         for grade in (4, 8):
             key = f"{subject}_grade{grade}"
-            cached = cache_path(root, subject, grade, year).exists()
+            cached = cache_path(root, subject, grade, year, kind).exists()
 
             series[key] = fetch_subject(
-                subject, grade, year, root=root, use_cache=use_cache
+                subject, grade, year, root=root, use_cache=use_cache,
+                jurisdictions=jurisdictions, kind=kind,
             )
 
             # Only pause when a call actually went out.
@@ -129,3 +155,45 @@ def fetch_all(
                 time.sleep(pause)
 
     return series
+
+
+# The urban districts NAEP assesses under TUDA — Trends in Urban District
+# Assessment. These take the same test as the states, in the same year, which
+# is the only reason a city index is possible at all: there is no other
+# achievement measure collected identically across cities.
+#
+# They are school districts, not cities. Several cover a whole county and are
+# named accordingly, and a district's boundary is not a city's — so the page
+# says "district" wherever it would be tempting to say "city".
+DISTRICTS = {
+    "XQ": ("Albuquerque", "NM"),
+    "XA": ("Atlanta", "GA"),
+    "XU": ("Austin", "TX"),
+    "XM": ("Baltimore City", "MD"),
+    "XB": ("Boston", "MA"),
+    "XT": ("Charlotte", "NC"),
+    "XC": ("Chicago", "IL"),
+    "XX": ("Clark County (Las Vegas)", "NV"),
+    "XV": ("Cleveland", "OH"),
+    "XS": ("Dallas", "TX"),
+    "XY": ("Denver", "CO"),
+    "XR": ("Detroit", "MI"),
+    "XW": ("District of Columbia", None),
+    "XE": ("Duval County (Jacksonville)", "FL"),
+    "XZ": ("Fort Worth", "TX"),
+    "XF": ("Fresno", "CA"),
+    "XG": ("Guilford County (Greensboro)", "NC"),
+    "XO": ("Hillsborough County (Tampa)", "FL"),
+    "XH": ("Houston", "TX"),
+    "XJ": ("Jefferson County (Louisville)", "KY"),
+    "XL": ("Los Angeles", "CA"),
+    "XI": ("Miami-Dade", "FL"),
+    "XK": ("Milwaukee", "WI"),
+    "XN": ("New York City", "NY"),
+    "XP": ("Philadelphia", "PA"),
+    "XD": ("San Diego", "CA"),
+    "YA": ("Shelby County (Memphis)", "TN"),
+    "YB": ("Orange County (Orlando)", "FL"),
+}
+
+DISTRICT_CODES = list(DISTRICTS)

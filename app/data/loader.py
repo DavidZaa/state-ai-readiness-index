@@ -10,7 +10,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from app.data.naep import LATEST_YEAR, STATES, fetch_all
+from app.data.naep import DISTRICTS, LATEST_YEAR, STATES, fetch_all
 from app.index_model import Indicator
 
 STATE_NAMES = {
@@ -145,8 +145,81 @@ def parse_weights(args, indicators: list[Indicator]) -> dict[str, float]:
     return weights
 
 
+DISTRICT_NAMES = {code: name for code, (name, _state) in DISTRICTS.items()}
+DISTRICT_STATE = {code: state for code, (_name, state) in DISTRICTS.items()}
+
+
+def load_district_indicators(root: Path, *, use_cache: bool = True) -> tuple[list[Indicator], dict]:
+    """The same index, for the urban districts NAEP assesses.
+
+    One indicator changes meaning here and it has to be said out loud. AI
+    guidance is published by state education departments, not by districts, so
+    a district cannot have its own status in this dataset — it inherits its
+    state's. That is a real fact about the district's policy environment and it
+    is *not* evidence the district adopted anything.
+
+    New York City is the exception, and it runs the other way. New York State
+    is coded "partial" precisely because the guidance on the tracker is New
+    York City Public Schools' own. For the state that is partial coverage; for
+    this district it is the whole thing, so it is counted as issued.
+    """
+    snapshot = root / "data" / "processed" / "naep_2024_districts.json"
+
+    if snapshot.exists():
+        series = json.loads(snapshot.read_text()).get("series") or {}
+    else:
+        series = fetch_all(
+            root=root, use_cache=use_cache,
+            jurisdictions=list(DISTRICTS), kind="district",
+        )
+
+    indicators = [
+        Indicator(
+            key=key,
+            label=NAEP_LABELS[key],
+            source=NAEP_SOURCE + " (urban districts)",
+            source_url=NAEP_URL,
+            year=str(LATEST_YEAR),
+            values=values,
+        )
+        for key, values in series.items()
+    ]
+
+    _state_policy, payload = load_policy(root)
+    scoring = payload["scoring"]
+    by_state = payload["states"]
+
+    inherited = {}
+
+    for code, (_name, state) in DISTRICTS.items():
+        if code == "XN":
+            inherited[code] = float(scoring["issued"])
+            continue
+
+        status = by_state.get(state) if state else None
+
+        if status in scoring:
+            inherited[code] = float(scoring[status])
+
+    indicators.append(
+        Indicator(
+            key="ai_policy",
+            label="AI guidance in the district's state",
+            source=payload["source"] + " — inherited from the state",
+            source_url=payload["source_url"],
+            year=payload["source_last_updated"],
+            values=inherited,
+        )
+    )
+
+    return indicators, payload
+
+
 __all__ = [
     "DEFAULT_WEIGHTS",
+    "DISTRICT_NAMES",
+    "DISTRICT_STATE",
+    "load_district_indicators",
     "NAEP_LABELS",
     "STATES",
     "STATE_NAMES",

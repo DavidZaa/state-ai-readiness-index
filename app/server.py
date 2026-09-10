@@ -19,13 +19,17 @@ from flask import Flask, Response, render_template, request
 
 from app.data.loader import (
     DEFAULT_WEIGHTS,
+    DISTRICT_NAMES,
+    DISTRICT_STATE,
     STATE_NAMES,
+    load_district_indicators,
     load_indicators,
     parse_weights,
 )
 from app.charts import SERIES_A, SERIES_B, comparison_series, policy_strips
 from app.index_model import (
     all_distributions,
+    below_coverage,
     rank_distribution_stream,
     rank_instability,
     score_states,
@@ -58,6 +62,17 @@ def create_app(root: Path = ROOT) -> Flask:
     # Alaska appear to reach 1st when no random weighting ever puts it above
     # 31st. One shared pass costs about a third of a second at startup.
     distributions = all_distributions(indicators, trials=500)
+
+    # The urban districts NAEP assesses, as a second index over the same
+    # measures. Loaded at startup like the states.
+    district_indicators, _district_policy = load_district_indicators(root)
+    district_distributions = all_distributions(district_indicators, trials=500)
+
+    # Three districts report no 2024 test data at all, leaving only the policy
+    # status inherited from their state. Scored on that alone one of them took
+    # first place on 30% of the evidence, so the districts index needs a floor
+    # the states index has never needed.
+    DISTRICT_MIN_COVERAGE = 0.5
     median_full = statistics.median(
         d["worst"] - d["best"] for d in distributions.values()
     )
@@ -285,6 +300,44 @@ def create_app(root: Path = ROOT) -> Flask:
             json.dumps(payload, indent=2),
             mimetype="application/json",
             headers={"Content-Disposition": "attachment; filename=state-ai-readiness-index.json"},
+        )
+
+    @app.route("/cities")
+    def cities():
+        weights = parse_weights(request.args, district_indicators)
+        method = request.args.get("method", "minmax")
+
+        if method not in ("minmax", "zscore"):
+            method = "minmax"
+
+        rows = score_states(
+            district_indicators, weights, method=method, min_coverage=DISTRICT_MIN_COVERAGE
+        )
+        unranked = below_coverage(
+            district_indicators, weights, method=method, min_coverage=DISTRICT_MIN_COVERAGE
+        )
+
+        # A district with no usable data at all never produces a row, so it
+        # would disappear without either list mentioning it. The District of
+        # Columbia is exactly that case — no 2024 results, and no state whose
+        # guidance it could inherit. Dropping it silently is the same failure
+        # the coverage floor exists to prevent, one level up.
+        accounted = {row["state"] for row in rows} | {row["state"] for row in unranked}
+        absent = [code for code in DISTRICT_NAMES if code not in accounted]
+
+        return render_template(
+            "cities.html",
+            rows=rows,
+            unranked=unranked,
+            indicators=district_indicators,
+            weights=weights,
+            method=method,
+            names=DISTRICT_NAMES,
+            home_state=DISTRICT_STATE,
+            swings=district_distributions,
+            state_names=STATE_NAMES,
+            absent=absent,
+            total=len(rows),
         )
 
     @app.route("/methodology")

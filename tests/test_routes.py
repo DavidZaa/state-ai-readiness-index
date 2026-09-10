@@ -159,3 +159,46 @@ class TestHonesty:
             # A row claiming full coverage must have a raw value per indicator.
             if row["coverage"] == 1.0:
                 assert len(row["raw"]) == len(payload["indicators"])
+
+
+class TestCities:
+    def test_the_page_renders(self, client):
+        response = client.get("/cities")
+
+        assert response.status_code == 200
+        assert b"school districts, not cities" in response.data
+
+    def test_weights_reorder_it_too(self, client):
+        default = client.get("/cities").data
+        policy_only = client.get(
+            "/cities?w_ai_policy=1&w_mathematics_grade4=0&w_mathematics_grade8=0"
+            "&w_reading_grade4=0&w_reading_grade8=0"
+        ).data
+
+        assert default != policy_only
+
+    # Every district NAEP lists must appear somewhere: ranked, or named as
+    # excluded. A district that quietly disappears is the failure this page's
+    # coverage floor exists to prevent.
+    def test_every_district_is_accounted_for(self, client):
+        from app.data.loader import DISTRICT_NAMES
+
+        page = client.get("/cities").data.decode()
+
+        for name in DISTRICT_NAMES.values():
+            assert name in page, f"{name} appears nowhere on the page"
+
+    def test_a_district_without_test_data_is_not_ranked_first(self, client):
+        page = client.get("/cities").data.decode()
+        table = page.split("<tbody>")[1].split("</tbody>")[0]
+
+        # Fresno and Shelby County report no 2024 results; scored on inherited
+        # policy alone Fresno previously took first place on 30% coverage.
+        assert "Fresno" not in table
+        assert "Shelby County" not in table
+
+    def test_the_excluded_are_explained(self, client):
+        page = client.get("/cities").data.decode()
+
+        assert "Not ranked" in page
+        assert "no usable measures at all" in page

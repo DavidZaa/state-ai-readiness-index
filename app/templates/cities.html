@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% block title %}Cities — State AI Readiness Index{% endblock %}
+{% block content %}
+
+<section class="hero" style="padding-bottom:1rem">
+  <h1>The same question, for cities</h1>
+  <p class="lede">
+    NAEP gives the same test to a group of large urban school districts that it gives to
+    the states. That makes a city ranking possible — and it inherits the same problem, plus
+    two of its own.
+  </p>
+</section>
+
+<div class="panel">
+  <p class="kicker">Read this before the table</p>
+  <ul class="small" style="max-width:64ch;margin:0;padding-left:1.15rem">
+    <li>
+      <strong>These are school districts, not cities.</strong> Several cover a whole county
+      and are named for it. A district boundary is not a city boundary, and the population
+      inside it is not the city's population.
+    </li>
+    <li>
+      <strong>The AI guidance measure is inherited from the state.</strong> Guidance is
+      published by state education departments, so a district has no status of its own
+      here. That its state published something is a real fact about its policy
+      environment; it is <em>not</em> evidence the district adopted anything.
+      New York City is the exception, and it runs the other way — New York State is coded
+      partial precisely because the guidance on the tracker is New York City's own, so for
+      this district it counts in full.
+    </li>
+    <li>
+      <strong>Twenty-five districts, not fifty states.</strong> A shorter list makes each
+      rank move less, so the swing numbers here are not comparable with the states page.
+    </li>
+  </ul>
+</div>
+
+{% include "_weights.html" %}
+
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>#</th><th>District</th><th>State</th><th class="num">Score</th>
+        <th class="num">Swing</th><th>Usually ranks</th><th class="num">Coverage</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in rows %}
+        {% set swing = swings.get(row.state) %}
+        <tr>
+          <td class="rank">{{ row.rank }}</td>
+          <td class="state-name">{{ names[row.state] }}</td>
+          <td class="small">{{ state_names.get(home_state[row.state], '—') }}</td>
+          <td class="num">{{ '%.1f'|format(row.score) }}</td>
+          <td class="num">
+            {% if swing %}
+              {% set spread = swing.p90 - swing.p10 %}
+              <span class="swing" data-level="{{ 'low' if spread < 5 else ('mid' if spread < 12 else 'high') }}">±{{ spread }}</span>
+            {% endif %}
+          </td>
+          <td class="small">{% if swing %}#{{ swing.p10 }} – #{{ swing.p90 }}{% endif %}</td>
+          <td class="num small">
+            {% if row.coverage < 1 %}<span class="missing">{{ row.coverage|pct }}</span>
+            {% else %}100%{% endif %}
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% if unranked or absent %}
+  <section class="panel">
+    <h2 style="font-size:1.15rem;margin:0 0 0.5rem">Not ranked</h2>
+    <p class="small" style="max-width:64ch">
+      These districts reported no usable 2024 test results, leaving only the policy status
+      inherited from their state. Scored on that alone, one of them came first — a top
+      position resting on a third of the evidence. They are listed here instead, because
+      leaving them out silently would be its own kind of dishonesty.
+    </p>
+    <ul class="small" style="margin:0.75rem 0 0;padding-left:1.15rem">
+      {% for row in unranked %}
+        <li>
+          <strong>{{ names[row.state] }}</strong>
+          — {{ row.coverage|pct }} of the measures
+          {% if home_state[row.state] %}· {{ state_names.get(home_state[row.state]) }}{% endif %}
+        </li>
+      {% endfor %}
+      {% for code in absent %}
+        <li>
+          <strong>{{ names[code] }}</strong> — no usable measures at all.
+          {% if not home_state[code] %}
+            It has no 2024 results, and no state whose guidance it could inherit.
+          {% endif %}
+        </li>
+      {% endfor %}
+    </ul>
+  </section>
+{% endif %}
+
+<p class="small" style="max-width:64ch">
+  NAEP reports these districts with the same method and in the same year as the states, but
+  it does not assess every district in the country — this is the set it covers, not a
+  ranking of American cities.
+  <a href="{{ url_for('methodology') }}">How the ranking is built</a> ·
+  <a href="{{ url_for('sources') }}">Sources</a>
+</p>
+
+{% endblock %}

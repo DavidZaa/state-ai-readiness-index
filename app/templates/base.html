@@ -13,6 +13,7 @@
       <a class="masthead__mark" href="{{ url_for('index') }}">State AI Readiness Index</a>
       <nav class="masthead__nav" aria-label="Sections">
         <a href="{{ url_for('explore') }}" {% if request.endpoint == 'explore' %}aria-current="page"{% endif %}>Explore</a>
+        <a href="{{ url_for('cities') }}" {% if request.endpoint == 'cities' %}aria-current="page"{% endif %}>Cities</a>
         <a href="{{ url_for('compare') }}" {% if request.endpoint == 'compare' %}aria-current="page"{% endif %}>Compare</a>
         <a href="{{ url_for('methodology') }}" {% if request.endpoint == 'methodology' %}aria-current="page"{% endif %}>Method</a>
         <a href="{{ url_for('sources') }}" {% if request.endpoint == 'sources' %}aria-current="page"{% endif %}>Sources</a>
