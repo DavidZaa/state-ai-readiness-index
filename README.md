@@ -1,5 +1,7 @@
 # State AI Readiness Index
 
+**Live: https://state-ai-readiness-index-rho.vercel.app**
+
 A ranking of US states on how ready they are for AI in schools, built so you can
 see how much the ranking depends on choices someone made.
 
