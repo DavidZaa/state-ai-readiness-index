@@ -73,13 +73,24 @@ commit the result.
 gunicorn --bind 0.0.0.0:$PORT --workers 2 --timeout 120 app.server:app
 ```
 
-`Procfile` and `render.yaml` are set up for Render; the same start command works
-on Railway, Fly and Heroku. Set `SARI_AUTHOR`, `SARI_AUTHOR_URL` and
-`SARI_REPO_URL` so the footer credits someone and links to real code.
+**Vercel** is the default target: `api/index.py` hands Flask's WSGI callable to
+Vercel's Python runtime and `vercel.json` routes everything to it. Cold start is
+about 1.2 seconds, then requests are served in milliseconds. Import the repo at
+vercel.com and it needs no configuration.
 
-Note that Render's free plan sleeps after 15 minutes idle and takes about a
-minute to wake — fine for a link you send occasionally, poor for a judge
-clicking through. PythonAnywhere's free tier stays awake and suits Flask well.
+One known limit there. The live analysis on a state page streams progress over
+server-sent events, and Vercel's Python runtime may buffer the response rather
+than flush each event. If it does, the progress bar jumps straight to complete
+instead of counting up; the analysis still runs and the distribution still
+renders. Nothing breaks, but the effect is lost.
+
+`Procfile` and `render.yaml` are also present, so the same code runs on Render,
+Railway, Fly or Heroku with a real process and no streaming caveat. Render's
+free plan sleeps after 15 minutes idle and takes about a minute to wake, which
+is poor for a link a reviewer clicks; its paid tier and the others stay warm.
+
+Set `SARI_AUTHOR`, `SARI_AUTHOR_URL` and `SARI_REPO_URL` on whichever host so
+the footer credits someone and links to real code.
 
 ## Layout
 
